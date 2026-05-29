@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+.uv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+# Raw data is too large for Git — keep it local only
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed catalogue IS committed (it's small and versioned for reproducibility)
+# data/processed/ is NOT ignored
+
+# Reports build artefacts
+reports/*.pdf

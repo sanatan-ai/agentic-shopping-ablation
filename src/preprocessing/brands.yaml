@@ -1,0 +1,204 @@
+# Curated brand allowlist per bucket.
+# Brand extraction searches each product title (case-insensitive) for any of these
+# brand strings and assigns the first match. Products with no match get brand="Unknown".
+#
+# Lists are intentionally conservative — better to leave a product as "Unknown" than
+# to mismatch on a generic substring. Add more brands as needed.
+
+Headphones:
+  - Sony
+  - Bose
+  - JBL
+  - Sennheiser
+  - Beats
+  - Skullcandy
+  - Jabra
+  - Plantronics
+  - Philips
+  - Audio-Technica
+  - Anker
+  - Soundcore
+  - JLab
+  - Marshall
+  - Beyerdynamic
+  - AKG
+  - Shure
+  - Logitech
+  - Razer
+  - Turtle Beach
+  - HyperX
+  - Steelseries
+  - KZ
+  - JVC
+  - Panasonic
+  - Pioneer
+  - Koss
+  - Cowin
+  - Mpow
+  - Tribit
+  - Linsoul
+  - eKids
+  - Apple
+  - Samsung
+  - Google
+  - Microsoft
+  - LG
+
+Cameras:
+  - Canon
+  - Nikon
+  - Sony
+  - Fujifilm
+  - Panasonic
+  - Olympus
+  - Pentax
+  - Leica
+  - Sigma
+  - Tamron
+  - Tokina
+  - GoPro
+  - DJI
+  - Insta360
+  - Kodak
+  - Polaroid
+  - NEEWER
+  - Neewer
+  - SmallRig
+  - SMALLRIG
+  - Godox
+  - Profoto
+  - Manfrotto
+  - Joby
+  - Peak Design
+  - Celestron
+  - Vortex
+  - Bushnell
+  - Nikon
+  - Zeiss
+  - Hasselblad
+  - RICOH
+  - Ricoh
+  - BlackMagic
+  - Wyze
+  - Arlo
+  - Ring
+  - Blink
+  - Reolink
+
+PhoneAccessories:
+  - Spigen
+  - OtterBox
+  - Apple
+  - Samsung
+  - Anker
+  - Belkin
+  - Mophie
+  - PopSockets
+  - JETech
+  - Supershieldz
+  - amFilm
+  - Ailun
+  - UNBREAKcable
+  - UniqueMe
+  - ESR
+  - Caseology
+  - Speck
+  - Tech21
+  - Ringke
+  - Nillkin
+  - i-Blason
+  - SUPCASE
+  - Aukey
+  - RAVPower
+  - Baseus
+  - Ugreen
+  - Logitech
+  - Microsoft
+  - Google
+  - Tile
+  - AirTag
+  - Whoop
+  - Fitbit
+
+Watches:
+  - Casio
+  - Seiko
+  - Citizen
+  - Timex
+  - Fossil
+  - Bulova
+  - Invicta
+  - Skagen
+  - MVMT
+  - Daniel Wellington
+  - Garmin
+  - Polar
+  - Suunto
+  - Fitbit
+  - Apple
+  - Samsung
+  - Pagani
+  - Pagani Design
+  - Tissot
+  - Hamilton
+  - Orient
+  - Movado
+  - Michael Kors
+  - Kate Spade
+  - Tory Burch
+  - Anne Klein
+  - Diesel
+  - G-Shock
+  - Casio G-Shock
+  - Rolex
+  - Omega
+  - Tag Heuer
+  - TAG Heuer
+  - Breitling
+  - Charles-Hubert
+  - Stuhrling
+  - Akribos
+  - Armitron
+  - Nautica
+  - Nine West
+
+LaptopAccessories:
+  - Dell
+  - HP
+  - Lenovo
+  - Apple
+  - Microsoft
+  - Asus
+  - Acer
+  - MSI
+  - Razer
+  - Logitech
+  - Anker
+  - Belkin
+  - Targus
+  - Kensington
+  - Tucano
+  - MOSISO
+  - Inateck
+  - tomtoc
+  - Incase
+  - Lacdo
+  - JETech
+  - Aukey
+  - Ugreen
+  - Baseus
+  - Cable Matters
+  - StarTech
+  - Plugable
+  - Sabrent
+  - WD
+  - SanDisk
+  - Samsung
+  - Seagate
+  - Crucial
+  - Kingston
+  - Corsair
+  - NinjaBatt
+  - mCover
+  - Surface
+  - Lention
