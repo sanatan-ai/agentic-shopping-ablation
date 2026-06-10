@@ -364,6 +364,10 @@ This is a running list — added after I noticed the journal entries were where 
 | 17 | 500 products, 100 per bucket, seed = 42 | S4 |
 | 18 | LR composition: 5 seminal + 5 recent (supersedes original 3-3-2-2 thematic split from S3) | S6 |
 | 19 | RQ2 direction = reactive > planning on tokens (contestable; flips ReWOO's claim for small-model context) | S6 |
+| 20 | Task suite: 50 tasks, 15 easy / 20 medium / 15 hard, 10 per bucket. Brand-gated Hard tasks (Cameras / LaptopAccessories / PhoneAccessories only) | S8 |
+| 21 | Task constraint thresholds calibrated per-bucket (price quantiles 50th/30th/15th; stars 4.3/4.5/4.7); valid-set bounded to [2, 30] | S8 |
+| 22 | Action format = structured JSON (Pydantic-validated); search = pure text matching; result cap = 10 with overflow flag | S9 |
+| 23 | Noise injector seeded independently per (task, noise_level, seed) → identical perturbations across architectures (fairness invariant) | S9 |
 
 ---
 
@@ -374,8 +378,71 @@ This is a running list — added after I noticed the journal entries were where 
 - **(after S4)** EDA before commitments. Pushing back on "do tasks now" saved a complete redo.
 - **(after S5)** Be honest about novelty. Flagging Degradation Slope as a synthesised metric (no precedent) is stronger than pretending it has one.
 - **(after S6)** Directional hypotheses make experiments tell stories. RQ2 framed as "reactive wins on tokens for small models" is more interesting than "planning wins" — opens both outcomes to being publishable findings.
-- **(after S6)** Reproducibility is a contribution, not infrastructure. The fixed seed + deterministic pipeline + committed Parquet artefact is worth pointing to in the thesis, not burying in a methods footnote.
+- **(after S7)** Reproducibility is a contribution, not infrastructure. The fixed seed + deterministic pipeline + committed Parquet artefact is worth pointing to in the thesis, not burying in a methods footnote.
+- **(after S8)** Resampling-with-validity is more robust than upfront constraint design. Letting the generator try up to 200 constraint combinations per task slot and discarding ones outside the [2, 30] valid-set band means I don't need a perfectly-tuned constraint distribution — the validity check enforces difficulty for me.
+- **(after S9)** Pure text search is a deliberate research choice, not a limitation. A semantic search would do the agent's work for it and contaminate the architectural comparison. Document this explicitly in the thesis.
+- **(after S9)** Oracle-agent sanity checks are cheap and catch real bugs. Writing 50 lines of cheating code that exercises every tool against every task gave 100% confidence the environment is wired correctly *before* any LLM was involved. Lesson: separate environment correctness from agent correctness, test them independently, in that order.
 
 ---
 
-*Next: task suite generation.*
+## Session 8
+
+Task suite generation. Catalogue's been fixed for a while; time to build the benchmark of 50 constrained shopping tasks against it.
+
+Locked the structure upfront: each task carries a natural-language prompt, a structured constraint spec, a preference function, the full valid set, and the optimal product(s) under the preference. The structured spec and the ground truth never go to the agent — they're for scoring only.
+
+Difficulty mix was 15 easy / 20 medium / 15 hard. Two design moves to keep this honest:
+
+- **Brand gating.** Hard tasks require a brand constraint, which means brands need to be identifiable from the catalogue. Cameras (56%), LaptopAccessories (53%), PhoneAccessories (52%) make the cut. Headphones (27%) and Watches (8%) don't — so Hard tasks only generate from the eligible buckets, and Headphones/Watches absorb their Hard slots as additional Medium tasks. Allocation works out exactly: 3 brand-eligible × 5 Hard = 15, 2 ineligible × 7 Medium + 3 brand-eligible × 2 Medium = 20, 3 Easy × 5 = 15. Total 50 ✓
+- **Per-bucket threshold calibration.** Price caps drawn at the 50th / 30th / 15th percentile of each bucket's price distribution, not from absolute ranges. Star tiers fixed at 4.3 / 4.5 / 4.7. Constraint thresholds get rounded to natural numbers ($25 not $24.83) before getting rendered into prose, so the prompts read like a person wrote them.
+
+Natural-language rendering: 3 surface variants per (preference × stars × brand) combination. "Find a... and choose the cheapest." vs "I need a... Pick the cheapest one." vs "Looking for the cheapest...". Same constraint spec, different wording. Helps test that the agent's NL interpretation is robust to surface variation, without confounding architecture.
+
+Validity check: any sampled task whose valid set falls outside [2, 30] gets discarded and resampled. Lower bound is so the task has alternatives (not just "find the one product that exists"); upper bound is so the constraint is non-trivial (filters out a meaningful fraction). Up to 200 resampling attempts per task slot. Final run: no failures.
+
+Wrote it as 3 modules (`config.py`, `models.py`, `generator.py`) plus `scripts/build_task_suite.py`. Pydantic schemas for the data types — same discipline as the catalogue pipeline.
+
+Smoke-tested locally before running on the real catalogue. Then ran the script on the committed catalogue, no errors. Allocation came out exactly as designed (15 easy / 20 medium / 15 hard, 10 per bucket). Valid-set sizes ranged 2-29 with median ~13. Three sample tasks looked clean:
+- Easy (T005, PhoneAccessories): *"I need a phone accessory priced below $8.00..."* — valid set 21.
+- Medium (T002, Headphones): *"Looking for the best-rated pair of headphones under $17.00 with 4.5+ stars."* — valid set 9, with 5 tied optima at 5.0 stars (good — tests that the scorer handles ties).
+- Hard (T001, PhoneAccessories): *"I need a phone accessory by Samsung, priced below $10.00, rated at least 4.5 stars..."* — valid set 5.
+
+Committed: `c94dce4`. Also caught a Git oddity where 6 of the preprocessing files showed as "modified" — turned out to be a mix of intentional manual cleanups (real) and CRLF/LF normalisation on copy-pastes (cosmetic). Committed as-is; flagged the line-ending issue for future cleanup with `.gitattributes`.
+
+---
+
+## Session 9
+
+Environment + sanity check. This is the simulated world the agents will act on. Five tools, action validation, observation contract, noise injector middleware, episode controller. Zero LLM involvement at this stage.
+
+Big design decisions to settle before code:
+
+- **Action format.** Structured JSON, not function-call strings. Agent emits `{"tool": "filter", "args": {...}}`. Pydantic-validated. Fail-fast on malformed.
+- **`search` semantics.** Pure text matching — return products whose title contains all query words. No semantic understanding, no bucket inference. This is deliberate: it forces the agent to use `search` + `filter` together for multi-step solutions, which is exactly the architectural behaviour under study. A semantic search would conflate retrieval quality with reasoning quality.
+- **Result cap.** 10 products per observation, with an overflow flag. Mirrors real e-commerce pagination and bounds the context size for the agent.
+
+Implementation split across 4 modules under `src/environment/`:
+- `models.py` — Pydantic schemas for Action, Observation, Product, TraceStep.
+- `tools.py` — Pure functions for the 5 tools. Each takes the catalogue + typed args, returns an Observation.
+- `noise.py` — `NoiseInjector` middleware. With probability *p*, either inject a structured `transient_failure` error or return a perturbed observation (price ±10%, stars ±0.3, reviews ±5%). Two modes, equal probability *p*/2 each. Terminal observations never perturbed.
+- `environment.py` — Top-level `Environment` class composing the above plus episode state (step budget=15, malformed-action limit=3 consecutive).
+
+Critical property of the noise injector: it carries its own seeded `random.Random`. Same (task, noise_level, seed) → identical noise pattern regardless of architecture. Without this, robustness comparison wouldn't be fair.
+
+**Sanity test via oracle agent.** Wrote a deliberately cheating "agent" in `src/oracle/oracle_agent.py` that knows the ground truth and executes a deterministic 4-step sequence: search → compare → get_details → purchase optimal. If the oracle doesn't score 100% Hard Success at noise=0, the environment has a bug. Not the agent — the environment.
+
+Ran the sanity check script:
+Purchased terminations:    50 / 50  (100.0%)
+Hard Success:              50 / 50  (100.0%)
+Preference Success:        50 / 50  (100.0%)
+PASS: Environment is wired correctly.
+
+Also smoke-tested the noise injector at p ∈ {0, 0.1, 0.2, 0.3}. Error rates came out as 0%, 5%, 9%, 13% — close to the expected p/2 (theoretical: 0%, 5%, 10%, 15%). Sample size is only 100 trials so small noise around the expected rate is fine.
+
+The environment is now a fixed, tested substrate. Agents will compose against it without modifying it. The `Action`/`Observation` contract is the interface they have to honour — that's what comes next.
+
+Committed: `1075590`.
+
+---
+
+*Next: reactive agent + Bedrock integration.*
