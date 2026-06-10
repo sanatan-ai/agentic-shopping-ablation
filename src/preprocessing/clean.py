@@ -1,8 +1,3 @@
-"""Cleaning functions for the raw Amazon Products Dataset.
-
-Each function is small, pure, and operates on a pandas DataFrame.
-The pipeline module composes them in sequence.
-"""
 from __future__ import annotations
 
 import logging
@@ -128,18 +123,6 @@ def _build_brand_pattern(brand_list: list[str]) -> re.Pattern:
 def extract_brand(
     df: pd.DataFrame, brands: dict[str, list[str]]
 ) -> pd.DataFrame:
-    """Add a 'brand' column by matching titles against the per-bucket brand list.
-
-    Products with no match get brand='Unknown'. Matching is case-insensitive,
-    whole-word, with longest-brand-first preference (so 'TAG Heuer' beats 'TAG').
-
-    Args:
-        df: DataFrame with a 'bucket' column and a 'title' column.
-        brands: dict of bucket_name -> list of canonical brand strings.
-
-    Returns:
-        DataFrame with an added 'brand' column.
-    """
     out = df.copy()
     out["brand"] = "Unknown"
 

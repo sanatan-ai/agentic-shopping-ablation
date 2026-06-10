@@ -1,10 +1,3 @@
-# Curated brand allowlist per bucket.
-# Brand extraction searches each product title (case-insensitive) for any of these
-# brand strings and assigns the first match. Products with no match get brand="Unknown".
-#
-# Lists are intentionally conservative — better to leave a product as "Unknown" than
-# to mismatch on a generic substring. Add more brands as needed.
-
 Headphones:
   - Sony
   - Bose

@@ -1,8 +1,3 @@
-"""Top-level pipeline orchestrator.
-
-Composes the cleaning and sampling steps to transform the raw Amazon Products
-Dataset into the curated ~500-product catalogue, written to Parquet.
-"""
 from __future__ import annotations
 
 import logging

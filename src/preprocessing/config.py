@@ -1,8 +1,3 @@
-"""Configuration for the catalogue pre-processing pipeline.
-
-All decisions locked during EDA are encoded here as a single source of truth.
-Edit values here rather than scattered through other modules.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

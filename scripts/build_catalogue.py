@@ -1,8 +1,3 @@
-"""Build the curated catalogue from the raw Amazon Products Dataset.
-
-Usage:
-    uv run python scripts/build_catalogue.py
-"""
 from __future__ import annotations
 
 import logging

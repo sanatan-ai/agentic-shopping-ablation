@@ -1,4 +1,3 @@
-"""Stratified sampling for the curated catalogue."""
 from __future__ import annotations
 
 import logging
@@ -13,19 +12,6 @@ def stratified_sample(
     products_per_bucket: int,
     random_seed: int,
 ) -> pd.DataFrame:
-    """Sample N products per bucket with a fixed random seed.
-
-    If a bucket has fewer than `products_per_bucket` rows after cleaning,
-    all of its rows are kept (no oversampling).
-
-    Args:
-        df: Cleaned DataFrame with a 'bucket' column.
-        products_per_bucket: Target sample size per bucket.
-        random_seed: Seed for reproducibility.
-
-    Returns:
-        DataFrame with up to `products_per_bucket * num_buckets` rows.
-    """
     sampled_frames: list[pd.DataFrame] = []
 
     for bucket, group in df.groupby("bucket"):

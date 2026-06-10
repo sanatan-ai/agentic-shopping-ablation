@@ -1,0 +1,1515 @@
+{
+  "catalogue_source": "data\\processed\\catalogue.parquet",
+  "random_seed": 42,
+  "tasks": [
+    {
+      "task_id": "T001",
+      "bucket": "PhoneAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 10.0,
+        "min_stars": 4.5,
+        "brand": "Samsung"
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a phone accessory by Samsung, priced below $10.00, rated at least 4.5 stars. Pick the cheapest one.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B0C9MKK35F",
+        "B0BPYT7HD6",
+        "B09Q8Q2DK2",
+        "B0744DM3Y3"
+      ],
+      "optimal_asins": [
+        "B09Q8Q2DK2"
+      ]
+    },
+    {
+      "task_id": "T002",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 17.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated pair of headphones under $17.00 with 4.5+ stars.",
+      "valid_set": [
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0B652YMTF",
+        "B0CC6DSJQG",
+        "B0CGHZ9W2J",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "7313205112",
+        "B0B652YMTF",
+        "B0CC6DSJQG",
+        "B0CGHZ9W2J",
+        "B0BXDBVYYM"
+      ]
+    },
+    {
+      "task_id": "T003",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 21.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a pair of headphones priced below $21.00, rated at least 4.3 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B09XB831F7",
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B08MZHLH71",
+        "B0B652YMTF",
+        "B0713TR8DB",
+        "B0CC6DSJQG",
+        "B0BS2NL9CG",
+        "B004Z4C0RI",
+        "B0CGHZ9W2J",
+        "B09L5Y2LSB",
+        "B083P1TSK7",
+        "B0C6JMP9LH",
+        "B005K9264Y",
+        "B01AQ3UINO",
+        "B07Q34ZKLF",
+        "B0BHYZQ5LM",
+        "B072JW53Y6",
+        "B0BQ69BWHK",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "7313205112",
+        "B0B652YMTF",
+        "B0CC6DSJQG",
+        "B0CGHZ9W2J",
+        "B0BXDBVYYM"
+      ]
+    },
+    {
+      "task_id": "T004",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 45.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a watch priced below $45.00, rated at least 4.5 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B073GDYXK2",
+        "B0C5BSSKDH",
+        "B01HI6FMF6",
+        "B002YK5WCK",
+        "B0BN1L9H9T",
+        "B0881WCJG8",
+        "B07R27RCYT",
+        "B0BFXCTH1P",
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B00OXIHEKO",
+        "B09ZFD1LYY",
+        "B0C4JJPQK9",
+        "B0C7C17JN5",
+        "B08B7B11TX",
+        "B07C6L6M9G",
+        "B008PDQT6I"
+      ],
+      "optimal_asins": [
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B08B7B11TX"
+      ]
+    },
+    {
+      "task_id": "T005",
+      "bucket": "PhoneAccessories",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 8.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a phone accessory priced below $8.00. Pick the highest-rated one.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B07Q3G17GD",
+        "B099QRPR3R",
+        "B09BZ9FY1N",
+        "B07W6FD6MV",
+        "B08FLBVXV3",
+        "B08KFTKNSS",
+        "B0BPYT7HD6",
+        "B09Q8Q2DK2",
+        "B01415QHYW",
+        "B08RWMLN9D",
+        "B09TB4Z7PQ",
+        "B09HZV53SB",
+        "B085DB7SG6",
+        "B0C2KJ8GYB",
+        "B091GTW1SD",
+        "B07V6GRH99",
+        "B09QGPGKN5",
+        "B0BL3JB5T5",
+        "B0C9TXDGBC",
+        "B0CCJNR7D7"
+      ],
+      "optimal_asins": [
+        "B0C9TXDGBC"
+      ]
+    },
+    {
+      "task_id": "T006",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 21.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a pair of headphones priced below $21.00, rated at least 4.5 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0B652YMTF",
+        "B0713TR8DB",
+        "B0CC6DSJQG",
+        "B004Z4C0RI",
+        "B0CGHZ9W2J",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B0BQ69BWHK",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "7313205112",
+        "B0B652YMTF",
+        "B0CC6DSJQG",
+        "B0CGHZ9W2J",
+        "B0BXDBVYYM"
+      ]
+    },
+    {
+      "task_id": "T007",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 27.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a watch priced below $27.00, rated at least 4.5 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B0C5BSSKDH",
+        "B01HI6FMF6",
+        "B0BN1L9H9T",
+        "B0881WCJG8",
+        "B07R27RCYT",
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B0C7C17JN5",
+        "B07C6L6M9G"
+      ],
+      "optimal_asins": [
+        "B0BD7DFFV6",
+        "B0C1BZ4W89"
+      ]
+    },
+    {
+      "task_id": "T008",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 17.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a pair of headphones priced below $17.00, rated at least 4.5 stars. Pick the cheapest one.",
+      "valid_set": [
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0B652YMTF",
+        "B0CC6DSJQG",
+        "B0CGHZ9W2J",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "B0BX962YTP"
+      ]
+    },
+    {
+      "task_id": "T009",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 45.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest watch under $45.00 with 4.5+ stars.",
+      "valid_set": [
+        "B073GDYXK2",
+        "B0C5BSSKDH",
+        "B01HI6FMF6",
+        "B002YK5WCK",
+        "B0BN1L9H9T",
+        "B0881WCJG8",
+        "B07R27RCYT",
+        "B0BFXCTH1P",
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B00OXIHEKO",
+        "B09ZFD1LYY",
+        "B0C4JJPQK9",
+        "B0C7C17JN5",
+        "B08B7B11TX",
+        "B07C6L6M9G",
+        "B008PDQT6I"
+      ],
+      "optimal_asins": [
+        "B0C1BZ4W89"
+      ]
+    },
+    {
+      "task_id": "T010",
+      "bucket": "Cameras",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 16.0,
+        "min_stars": 4.7,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated camera under $16.00 with 4.7+ stars.",
+      "valid_set": [
+        "B0153RDG8C",
+        "B0C58Q6P93",
+        "B09ZH78KS5"
+      ],
+      "optimal_asins": [
+        "B0C58Q6P93"
+      ]
+    },
+    {
+      "task_id": "T011",
+      "bucket": "PhoneAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 10.0,
+        "min_stars": 4.5,
+        "brand": "PopSockets"
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated PopSockets phone accessory under $10.00 with 4.5+ stars.",
+      "valid_set": [
+        "B07Q3G17GD",
+        "B09D2S75K2"
+      ],
+      "optimal_asins": [
+        "B07Q3G17GD",
+        "B09D2S75K2"
+      ]
+    },
+    {
+      "task_id": "T012",
+      "bucket": "Headphones",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 14.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest pair of headphones under $14.00.",
+      "valid_set": [
+        "B0BWT4J67J",
+        "B09XB831F7",
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0BLTXYSR9",
+        "B0CC6DSJQG",
+        "B07TWSTH6X",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B005K9264Y",
+        "B0C5CNYND7",
+        "B0BHYT16TP",
+        "B0B96LG5RR",
+        "B09Z93GF13",
+        "B0C6PNKNG6",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "B0BX962YTP"
+      ]
+    },
+    {
+      "task_id": "T013",
+      "bucket": "Cameras",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 16.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a camera priced below $16.00. Pick the highest-rated one.",
+      "valid_set": [
+        "B0B3QFT3YH",
+        "B0153RDG8C",
+        "B07Y2WQRY6",
+        "B01EF3Q8SU",
+        "B0C3GYZ4H9",
+        "B08QVJCMDX",
+        "B07S917J5C",
+        "B0B9RL7R3J",
+        "B074T1FQRK",
+        "B0C58Q6P93",
+        "B09ZH78KS5",
+        "B06XWQG27X",
+        "B08MKXR4PJ",
+        "B0B15986CB"
+      ],
+      "optimal_asins": [
+        "B0C58Q6P93"
+      ]
+    },
+    {
+      "task_id": "T014",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 14.0,
+        "min_stars": 4.7,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest pair of headphones under $14.00 with 4.7+ stars.",
+      "valid_set": [
+        "B0BX962YTP",
+        "7313205112",
+        "B0CC6DSJQG",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "B0BX962YTP"
+      ]
+    },
+    {
+      "task_id": "T015",
+      "bucket": "Watches",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 15.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a watch priced below $15.00. Pick the cheapest one.",
+      "valid_set": [
+        "B01HI6FMF6",
+        "B07VJYR2C8",
+        "B09QX5VT1P",
+        "B09LC32HDP",
+        "B07R27RCYT",
+        "B078SXKPH1",
+        "B0B9MM596Y",
+        "B0C1BZ4W89",
+        "B01GRYUBSI",
+        "B073PS97P6",
+        "B0C7C17JN5",
+        "B08L7DGWRD",
+        "B07C6L6M9G",
+        "B09V2G8HN5",
+        "B0771HF9M8",
+        "B08123J8KD",
+        "B07ZD5DT3X",
+        "B07RHJ7KG2"
+      ],
+      "optimal_asins": [
+        "B08L7DGWRD"
+      ]
+    },
+    {
+      "task_id": "T016",
+      "bucket": "LaptopAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 20.0,
+        "min_stars": 4.3,
+        "brand": "Lenovo"
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated Lenovo laptop accessory under $20.00 with 4.3+ stars.",
+      "valid_set": [
+        "B073GT1WQ3",
+        "B07QV5N9VH"
+      ],
+      "optimal_asins": [
+        "B073GT1WQ3",
+        "B07QV5N9VH"
+      ]
+    },
+    {
+      "task_id": "T017",
+      "bucket": "Cameras",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 40.0,
+        "min_stars": 4.3,
+        "brand": "Canon"
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a camera by Canon, priced below $40.00, rated at least 4.3 stars. Pick the cheapest one.",
+      "valid_set": [
+        "B07Y2WQRY6",
+        "B08QFJQ14J",
+        "B01N2YSN0T",
+        "B08BCR2CH5",
+        "B08CXHB1LQ"
+      ],
+      "optimal_asins": [
+        "B07Y2WQRY6"
+      ]
+    },
+    {
+      "task_id": "T018",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 15.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest watch under $15.00 with 4.3+ stars.",
+      "valid_set": [
+        "B01HI6FMF6",
+        "B07VJYR2C8",
+        "B07R27RCYT",
+        "B0C1BZ4W89",
+        "B01GRYUBSI",
+        "B073PS97P6",
+        "B0C7C17JN5",
+        "B08L7DGWRD",
+        "B07C6L6M9G",
+        "B09V2G8HN5",
+        "B0771HF9M8"
+      ],
+      "optimal_asins": [
+        "B08L7DGWRD"
+      ]
+    },
+    {
+      "task_id": "T019",
+      "bucket": "PhoneAccessories",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 8.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a phone accessory priced below $8.00. Pick the cheapest one.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B07Q3G17GD",
+        "B099QRPR3R",
+        "B09BZ9FY1N",
+        "B07W6FD6MV",
+        "B08FLBVXV3",
+        "B08KFTKNSS",
+        "B0BPYT7HD6",
+        "B09Q8Q2DK2",
+        "B01415QHYW",
+        "B08RWMLN9D",
+        "B09TB4Z7PQ",
+        "B09HZV53SB",
+        "B085DB7SG6",
+        "B0C2KJ8GYB",
+        "B091GTW1SD",
+        "B07V6GRH99",
+        "B09QGPGKN5",
+        "B0BL3JB5T5",
+        "B0C9TXDGBC",
+        "B0CCJNR7D7"
+      ],
+      "optimal_asins": [
+        "B08RWMLN9D"
+      ]
+    },
+    {
+      "task_id": "T020",
+      "bucket": "PhoneAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 14.0,
+        "min_stars": 4.7,
+        "brand": "PopSockets"
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest PopSockets phone accessory under $14.00 with 4.7+ stars.",
+      "valid_set": [
+        "B07Q3G17GD",
+        "B09D2S75K2"
+      ],
+      "optimal_asins": [
+        "B07Q3G17GD"
+      ]
+    },
+    {
+      "task_id": "T021",
+      "bucket": "LaptopAccessories",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 13.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Find a laptop accessory under $13.00, and choose the cheapest option.",
+      "valid_set": [
+        "B0BKGVTT21",
+        "B013JQBPUK",
+        "B0BYDCMZ5R",
+        "B08T12HPT1",
+        "B0BN3SQQ5S",
+        "B09L5Q3VNV",
+        "B09GVFCHBP",
+        "B09HTP6WCN",
+        "B07RMYKMZD",
+        "B08LH6RNDR",
+        "B06XS2GM1S",
+        "B0BW5XQZ26",
+        "B07YCB8S5Z",
+        "B07QV5N9VH",
+        "B08XZS5N6D",
+        "B07LC67CB2",
+        "B07444S9VX",
+        "B0B6C7R1MP"
+      ],
+      "optimal_asins": [
+        "B09GVFCHBP"
+      ]
+    },
+    {
+      "task_id": "T022",
+      "bucket": "Cameras",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 23.0,
+        "min_stars": 4.5,
+        "brand": "Canon"
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a camera by Canon, priced below $23.00, rated at least 4.5 stars. Pick the cheapest one.",
+      "valid_set": [
+        "B07Y2WQRY6",
+        "B01N2YSN0T"
+      ],
+      "optimal_asins": [
+        "B07Y2WQRY6"
+      ]
+    },
+    {
+      "task_id": "T023",
+      "bucket": "PhoneAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 8.0,
+        "min_stars": 4.3,
+        "brand": "Samsung"
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a phone accessory by Samsung, priced below $8.00, rated at least 4.3 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B0BPYT7HD6",
+        "B09Q8Q2DK2"
+      ],
+      "optimal_asins": [
+        "B09Q8Q2DK2"
+      ]
+    },
+    {
+      "task_id": "T024",
+      "bucket": "Watches",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 15.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated watch under $15.00.",
+      "valid_set": [
+        "B01HI6FMF6",
+        "B07VJYR2C8",
+        "B09QX5VT1P",
+        "B09LC32HDP",
+        "B07R27RCYT",
+        "B078SXKPH1",
+        "B0B9MM596Y",
+        "B0C1BZ4W89",
+        "B01GRYUBSI",
+        "B073PS97P6",
+        "B0C7C17JN5",
+        "B08L7DGWRD",
+        "B07C6L6M9G",
+        "B09V2G8HN5",
+        "B0771HF9M8",
+        "B08123J8KD",
+        "B07ZD5DT3X",
+        "B07RHJ7KG2"
+      ],
+      "optimal_asins": [
+        "B0C1BZ4W89"
+      ]
+    },
+    {
+      "task_id": "T025",
+      "bucket": "LaptopAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 20.0,
+        "min_stars": 4.3,
+        "brand": "Asus"
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a laptop accessory by Asus, priced below $20.00, rated at least 4.3 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B08NCSRNF9",
+        "B01MTA6FHF"
+      ],
+      "optimal_asins": [
+        "B01MTA6FHF"
+      ]
+    },
+    {
+      "task_id": "T026",
+      "bucket": "PhoneAccessories",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 8.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a phone accessory priced below $8.00, rated at least 4.3 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B07Q3G17GD",
+        "B099QRPR3R",
+        "B09BZ9FY1N",
+        "B07W6FD6MV",
+        "B08FLBVXV3",
+        "B08KFTKNSS",
+        "B0BPYT7HD6",
+        "B09Q8Q2DK2",
+        "B01415QHYW",
+        "B09TB4Z7PQ",
+        "B09HZV53SB",
+        "B085DB7SG6",
+        "B07V6GRH99",
+        "B09QGPGKN5",
+        "B0BL3JB5T5",
+        "B0C9TXDGBC"
+      ],
+      "optimal_asins": [
+        "B0C9TXDGBC"
+      ]
+    },
+    {
+      "task_id": "T027",
+      "bucket": "LaptopAccessories",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 13.0,
+        "min_stars": 4.7,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest laptop accessory under $13.00 with 4.7+ stars.",
+      "valid_set": [
+        "B0BYDCMZ5R",
+        "B09GVFCHBP",
+        "B08XZS5N6D",
+        "B07LC67CB2"
+      ],
+      "optimal_asins": [
+        "B09GVFCHBP"
+      ]
+    },
+    {
+      "task_id": "T028",
+      "bucket": "PhoneAccessories",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 8.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a phone accessory priced below $8.00. Pick the cheapest one.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B07Q3G17GD",
+        "B099QRPR3R",
+        "B09BZ9FY1N",
+        "B07W6FD6MV",
+        "B08FLBVXV3",
+        "B08KFTKNSS",
+        "B0BPYT7HD6",
+        "B09Q8Q2DK2",
+        "B01415QHYW",
+        "B08RWMLN9D",
+        "B09TB4Z7PQ",
+        "B09HZV53SB",
+        "B085DB7SG6",
+        "B0C2KJ8GYB",
+        "B091GTW1SD",
+        "B07V6GRH99",
+        "B09QGPGKN5",
+        "B0BL3JB5T5",
+        "B0C9TXDGBC",
+        "B0CCJNR7D7"
+      ],
+      "optimal_asins": [
+        "B08RWMLN9D"
+      ]
+    },
+    {
+      "task_id": "T029",
+      "bucket": "Headphones",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 14.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a pair of headphones priced below $14.00. Pick the highest-rated one.",
+      "valid_set": [
+        "B0BWT4J67J",
+        "B09XB831F7",
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0BLTXYSR9",
+        "B0CC6DSJQG",
+        "B07TWSTH6X",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B005K9264Y",
+        "B0C5CNYND7",
+        "B0BHYT16TP",
+        "B0B96LG5RR",
+        "B09Z93GF13",
+        "B0C6PNKNG6",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "7313205112",
+        "B0CC6DSJQG",
+        "B0BXDBVYYM"
+      ]
+    },
+    {
+      "task_id": "T030",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 14.0,
+        "min_stars": 4.7,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a pair of headphones priced below $14.00, rated at least 4.7 stars. Pick the cheapest one.",
+      "valid_set": [
+        "B0BX962YTP",
+        "7313205112",
+        "B0CC6DSJQG",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "B0BX962YTP"
+      ]
+    },
+    {
+      "task_id": "T031",
+      "bucket": "Cameras",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 40.0,
+        "min_stars": 4.3,
+        "brand": "GoPro"
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a camera under $40.00 with at least 4.3 stars from GoPro, and choose the highest-rated option.",
+      "valid_set": [
+        "B01EF3Q8SU",
+        "B08BZCMC1K",
+        "B08MKXR4PJ"
+      ],
+      "optimal_asins": [
+        "B08MKXR4PJ"
+      ]
+    },
+    {
+      "task_id": "T032",
+      "bucket": "Cameras",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 16.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a camera under $16.00, and choose the highest-rated option.",
+      "valid_set": [
+        "B0B3QFT3YH",
+        "B0153RDG8C",
+        "B07Y2WQRY6",
+        "B01EF3Q8SU",
+        "B0C3GYZ4H9",
+        "B08QVJCMDX",
+        "B07S917J5C",
+        "B0B9RL7R3J",
+        "B074T1FQRK",
+        "B0C58Q6P93",
+        "B09ZH78KS5",
+        "B06XWQG27X",
+        "B08MKXR4PJ",
+        "B0B15986CB"
+      ],
+      "optimal_asins": [
+        "B0C58Q6P93"
+      ]
+    },
+    {
+      "task_id": "T033",
+      "bucket": "PhoneAccessories",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 10.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a phone accessory under $10.00 with at least 4.5 stars, and choose the highest-rated option.",
+      "valid_set": [
+        "B09ZYJB6RB",
+        "B07Q3G17GD",
+        "B088DXSTNW",
+        "B09BZ9FY1N",
+        "B09PV1ZMDQ",
+        "B07W6FD6MV",
+        "B0C9MKK35F",
+        "B08KFTKNSS",
+        "B0BPYT7HD6",
+        "B0BLT1N719",
+        "B0CDL2JJ86",
+        "B09YHN4GZF",
+        "B09Q8Q2DK2",
+        "B01415QHYW",
+        "B09D2S75K2",
+        "B09TB4Z7PQ",
+        "B08DXKVP6M",
+        "B085DB7SG6",
+        "B0B5V6XWSM",
+        "B07V6GRH99",
+        "B0744DM3Y3",
+        "B0C9TXDGBC"
+      ],
+      "optimal_asins": [
+        "B0CDL2JJ86"
+      ]
+    },
+    {
+      "task_id": "T034",
+      "bucket": "Cameras",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 40.0,
+        "min_stars": 4.3,
+        "brand": "Neewer"
+      },
+      "preference": "cheapest",
+      "natural_language": "Find a camera under $40.00 with at least 4.3 stars from Neewer, and choose the cheapest option.",
+      "valid_set": [
+        "B07D7Q7WLP",
+        "B0BWDJ19D6"
+      ],
+      "optimal_asins": [
+        "B07D7Q7WLP"
+      ]
+    },
+    {
+      "task_id": "T035",
+      "bucket": "PhoneAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "PhoneAccessories",
+        "max_price": 14.0,
+        "min_stars": 4.5,
+        "brand": "PopSockets"
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest PopSockets phone accessory under $14.00 with 4.5+ stars.",
+      "valid_set": [
+        "B07Q3G17GD",
+        "B09D2S75K2"
+      ],
+      "optimal_asins": [
+        "B07Q3G17GD"
+      ]
+    },
+    {
+      "task_id": "T036",
+      "bucket": "Cameras",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 23.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest camera under $23.00 with 4.3+ stars.",
+      "valid_set": [
+        "B08Q767R82",
+        "B0B3QFT3YH",
+        "B0153RDG8C",
+        "B09X5ZY33P",
+        "B07D7Q7WLP",
+        "B07Y2WQRY6",
+        "B01EF3Q8SU",
+        "B0C3GYZ4H9",
+        "B08QFJQ14J",
+        "B08CZ9PCJP",
+        "B08QVJCMDX",
+        "B01IZ6RBAW",
+        "B07S917J5C",
+        "B0B9RL7R3J",
+        "B0C58Q6P93",
+        "B09ZH78KS5",
+        "B08BZCMC1K",
+        "B01KQOO8Z2",
+        "B08X6HP3KV",
+        "B06XWQG27X",
+        "B01N2YSN0T",
+        "B08MKXR4PJ",
+        "B088TQV4RD",
+        "B0B15986CB"
+      ],
+      "optimal_asins": [
+        "B0153RDG8C"
+      ]
+    },
+    {
+      "task_id": "T037",
+      "bucket": "LaptopAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 13.0,
+        "min_stars": 4.3,
+        "brand": "Acer"
+      },
+      "preference": "cheapest",
+      "natural_language": "I need a laptop accessory by Acer, priced below $13.00, rated at least 4.3 stars. Pick the cheapest one.",
+      "valid_set": [
+        "B08T12HPT1",
+        "B08LH6RNDR",
+        "B06XS2GM1S"
+      ],
+      "optimal_asins": [
+        "B08LH6RNDR"
+      ]
+    },
+    {
+      "task_id": "T038",
+      "bucket": "Headphones",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 14.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Find a pair of headphones under $14.00, and choose the cheapest option.",
+      "valid_set": [
+        "B0BWT4J67J",
+        "B09XB831F7",
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0BLTXYSR9",
+        "B0CC6DSJQG",
+        "B07TWSTH6X",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B005K9264Y",
+        "B0C5CNYND7",
+        "B0BHYT16TP",
+        "B0B96LG5RR",
+        "B09Z93GF13",
+        "B0C6PNKNG6",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "B0BX962YTP"
+      ]
+    },
+    {
+      "task_id": "T039",
+      "bucket": "LaptopAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 28.0,
+        "min_stars": 4.5,
+        "brand": "MOSISO"
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated MOSISO laptop accessory under $28.00 with 4.5+ stars.",
+      "valid_set": [
+        "B098TFT17P",
+        "B082XC2149"
+      ],
+      "optimal_asins": [
+        "B098TFT17P",
+        "B082XC2149"
+      ]
+    },
+    {
+      "task_id": "T040",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 27.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a watch under $27.00 with at least 4.3 stars, and choose the highest-rated option.",
+      "valid_set": [
+        "B0C5BSSKDH",
+        "B07MZ99LZQ",
+        "B01HI6FMF6",
+        "B07VJYR2C8",
+        "B0BN1L9H9T",
+        "B0881WCJG8",
+        "B07R27RCYT",
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B01GRYUBSI",
+        "B073PS97P6",
+        "B0C7C17JN5",
+        "B08L7DGWRD",
+        "B07C6L6M9G",
+        "B09V2G8HN5",
+        "B0771HF9M8"
+      ],
+      "optimal_asins": [
+        "B0BD7DFFV6",
+        "B0C1BZ4W89"
+      ]
+    },
+    {
+      "task_id": "T041",
+      "bucket": "LaptopAccessories",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 13.0,
+        "min_stars": 4.5,
+        "brand": "Acer"
+      },
+      "preference": "cheapest",
+      "natural_language": "Find a laptop accessory under $13.00 with at least 4.5 stars from Acer, and choose the cheapest option.",
+      "valid_set": [
+        "B08LH6RNDR",
+        "B06XS2GM1S"
+      ],
+      "optimal_asins": [
+        "B08LH6RNDR"
+      ]
+    },
+    {
+      "task_id": "T042",
+      "bucket": "Headphones",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Headphones",
+        "max_price": 21.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Looking for the best-rated pair of headphones under $21.00 with 4.5+ stars.",
+      "valid_set": [
+        "B0BX962YTP",
+        "7313205112",
+        "B088NDSKHB",
+        "B0B652YMTF",
+        "B0713TR8DB",
+        "B0CC6DSJQG",
+        "B004Z4C0RI",
+        "B0CGHZ9W2J",
+        "B09L5Y2LSB",
+        "B0C6JMP9LH",
+        "B0BQ69BWHK",
+        "B0BXDBVYYM"
+      ],
+      "optimal_asins": [
+        "7313205112",
+        "B0B652YMTF",
+        "B0CC6DSJQG",
+        "B0CGHZ9W2J",
+        "B0BXDBVYYM"
+      ]
+    },
+    {
+      "task_id": "T043",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 45.0,
+        "min_stars": 4.5,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a watch priced below $45.00, rated at least 4.5 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B073GDYXK2",
+        "B0C5BSSKDH",
+        "B01HI6FMF6",
+        "B002YK5WCK",
+        "B0BN1L9H9T",
+        "B0881WCJG8",
+        "B07R27RCYT",
+        "B0BFXCTH1P",
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B00OXIHEKO",
+        "B09ZFD1LYY",
+        "B0C4JJPQK9",
+        "B0C7C17JN5",
+        "B08B7B11TX",
+        "B07C6L6M9G",
+        "B008PDQT6I"
+      ],
+      "optimal_asins": [
+        "B0BD7DFFV6",
+        "B0C1BZ4W89",
+        "B08B7B11TX"
+      ]
+    },
+    {
+      "task_id": "T044",
+      "bucket": "Cameras",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 16.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a camera under $16.00, and choose the highest-rated option.",
+      "valid_set": [
+        "B0B3QFT3YH",
+        "B0153RDG8C",
+        "B07Y2WQRY6",
+        "B01EF3Q8SU",
+        "B0C3GYZ4H9",
+        "B08QVJCMDX",
+        "B07S917J5C",
+        "B0B9RL7R3J",
+        "B074T1FQRK",
+        "B0C58Q6P93",
+        "B09ZH78KS5",
+        "B06XWQG27X",
+        "B08MKXR4PJ",
+        "B0B15986CB"
+      ],
+      "optimal_asins": [
+        "B0C58Q6P93"
+      ]
+    },
+    {
+      "task_id": "T045",
+      "bucket": "Cameras",
+      "difficulty": "hard",
+      "constraints": {
+        "bucket": "Cameras",
+        "max_price": 40.0,
+        "min_stars": 4.3,
+        "brand": "GoPro"
+      },
+      "preference": "highest_rated",
+      "natural_language": "I need a camera by GoPro, priced below $40.00, rated at least 4.3 stars. Pick the highest-rated one.",
+      "valid_set": [
+        "B01EF3Q8SU",
+        "B08BZCMC1K",
+        "B08MKXR4PJ"
+      ],
+      "optimal_asins": [
+        "B08MKXR4PJ"
+      ]
+    },
+    {
+      "task_id": "T046",
+      "bucket": "LaptopAccessories",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 13.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a laptop accessory under $13.00, and choose the highest-rated option.",
+      "valid_set": [
+        "B0BKGVTT21",
+        "B013JQBPUK",
+        "B0BYDCMZ5R",
+        "B08T12HPT1",
+        "B0BN3SQQ5S",
+        "B09L5Q3VNV",
+        "B09GVFCHBP",
+        "B09HTP6WCN",
+        "B07RMYKMZD",
+        "B08LH6RNDR",
+        "B06XS2GM1S",
+        "B0BW5XQZ26",
+        "B07YCB8S5Z",
+        "B07QV5N9VH",
+        "B08XZS5N6D",
+        "B07LC67CB2",
+        "B07444S9VX",
+        "B0B6C7R1MP"
+      ],
+      "optimal_asins": [
+        "B0BYDCMZ5R"
+      ]
+    },
+    {
+      "task_id": "T047",
+      "bucket": "LaptopAccessories",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 13.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest laptop accessory under $13.00.",
+      "valid_set": [
+        "B0BKGVTT21",
+        "B013JQBPUK",
+        "B0BYDCMZ5R",
+        "B08T12HPT1",
+        "B0BN3SQQ5S",
+        "B09L5Q3VNV",
+        "B09GVFCHBP",
+        "B09HTP6WCN",
+        "B07RMYKMZD",
+        "B08LH6RNDR",
+        "B06XS2GM1S",
+        "B0BW5XQZ26",
+        "B07YCB8S5Z",
+        "B07QV5N9VH",
+        "B08XZS5N6D",
+        "B07LC67CB2",
+        "B07444S9VX",
+        "B0B6C7R1MP"
+      ],
+      "optimal_asins": [
+        "B09GVFCHBP"
+      ]
+    },
+    {
+      "task_id": "T048",
+      "bucket": "Watches",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 15.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "highest_rated",
+      "natural_language": "Find a watch under $15.00 with at least 4.3 stars, and choose the highest-rated option.",
+      "valid_set": [
+        "B01HI6FMF6",
+        "B07VJYR2C8",
+        "B07R27RCYT",
+        "B0C1BZ4W89",
+        "B01GRYUBSI",
+        "B073PS97P6",
+        "B0C7C17JN5",
+        "B08L7DGWRD",
+        "B07C6L6M9G",
+        "B09V2G8HN5",
+        "B0771HF9M8"
+      ],
+      "optimal_asins": [
+        "B0C1BZ4W89"
+      ]
+    },
+    {
+      "task_id": "T049",
+      "bucket": "LaptopAccessories",
+      "difficulty": "medium",
+      "constraints": {
+        "bucket": "LaptopAccessories",
+        "max_price": 20.0,
+        "min_stars": 4.3,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Find a laptop accessory under $20.00 with at least 4.3 stars, and choose the cheapest option.",
+      "valid_set": [
+        "B07DN5PKVN",
+        "B073GT1WQ3",
+        "B08NCSRNF9",
+        "B013JQBPUK",
+        "B07KG8YT5K",
+        "B0BYDCMZ5R",
+        "B08T12HPT1",
+        "B07TBZR9Q8",
+        "B0BN3SQQ5S",
+        "B09L5Q3VNV",
+        "B09GVFCHBP",
+        "B07RMYKMZD",
+        "B08LH6RNDR",
+        "B098TFT17P",
+        "B06XS2GM1S",
+        "B071VK5GFJ",
+        "B0BW5XQZ26",
+        "B0B659J1D5",
+        "B07YCB8S5Z",
+        "B07QV5N9VH",
+        "B08XZS5N6D",
+        "B07LC67CB2",
+        "B07444S9VX",
+        "B0B6C7R1MP",
+        "B077ZRWTSR",
+        "B01MTA6FHF",
+        "B0B2F5KQYG"
+      ],
+      "optimal_asins": [
+        "B09GVFCHBP"
+      ]
+    },
+    {
+      "task_id": "T050",
+      "bucket": "Watches",
+      "difficulty": "easy",
+      "constraints": {
+        "bucket": "Watches",
+        "max_price": 27.0,
+        "min_stars": null,
+        "brand": null
+      },
+      "preference": "cheapest",
+      "natural_language": "Looking for the cheapest watch under $27.00.",
+      "valid_set": [
+        "B0C5BSSKDH",
+        "B0B9MDKB7H",
+        "B07MZ99LZQ",
+        "B01HI6FMF6",
+        "B083GS46TQ",
+        "B07R8C2K6B",
+        "B0BWH7Z166",
+        "B07VJYR2C8",
+        "B09QX5VT1P",
+        "B0BN1L9H9T",
+        "B07NVPH5PF",
+        "B09LC32HDP",
+        "B0881WCJG8",
+        "B07R27RCYT",
+        "B078SXKPH1",
+        "B0BD7DFFV6",
+        "B0B9MM596Y",
+        "B0C1BZ4W89",
+        "B01GRYUBSI",
+        "B07P6C7DTJ",
+        "B073PS97P6",
+        "B09TV8JKJN",
+        "B0C7C17JN5",
+        "B08L7DGWRD",
+        "B07C6L6M9G",
+        "B09V2G8HN5",
+        "B0771HF9M8",
+        "B08123J8KD",
+        "B07ZD5DT3X",
+        "B07RHJ7KG2"
+      ],
+      "optimal_asins": [
+        "B08L7DGWRD"
+      ]
+    }
+  ]
+}
