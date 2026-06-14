@@ -91,8 +91,10 @@ class BedrockClient:
 
     def _ensure_client(self) -> Any:
         if self._client is None:
-            import boto3  # imported lazily so MockClient users don't need boto3
+            import boto3
             self._client = boto3.client("bedrock-runtime", region_name=self.region)
+            logger.info("BedrockClient initialised: model=%s, region=%s",
+                        self.model_id, self.region)
         return self._client
 
     def complete(
