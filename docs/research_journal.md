@@ -368,6 +368,11 @@ This is a running list — added after I noticed the journal entries were where 
 | 21 | Task constraint thresholds calibrated per-bucket (price quantiles 50th/30th/15th; stars 4.3/4.5/4.7); valid-set bounded to [2, 30] | S8 |
 | 22 | Action format = structured JSON (Pydantic-validated); search = pure text matching; result cap = 10 with overflow flag | S9 |
 | 23 | Noise injector seeded independently per (task, noise_level, seed) → identical perturbations across architectures (fairness invariant) | S9 |
+| 24 | Project location moved out of OneDrive to `C:\Users\sanat\Projects\` — venv operations were locking on sync conflicts | S10 |
+| 25 | LLM client architecture: Protocol with `BedrockClient` (real) + `MockClient` (canned). Cost tracking baked in. Lazy boto3 import. | S10 |
+| 26 | Bedrock model ID requires `us.` inference-profile prefix: `us.meta.llama3-1-8b-instruct-v1:0` (AWS migrated Llama 3.1 8B off direct on-demand invocation) | S10 |
+| 27 | Planning agent's plan/purchase resolution = option (b): plan up to narrowing, replan for the final purchase. Trigger on either error OR plan-finished-without-purchase. | S11 |
+| 28 | Pilot configuration locked: 20 stratified tasks × 2 architectures × 2 noise levels × 1 seed = 80 runs at ~$0.24 cost | S12 |
 
 ---
 
@@ -382,6 +387,11 @@ This is a running list — added after I noticed the journal entries were where 
 - **(after S8)** Resampling-with-validity is more robust than upfront constraint design. Letting the generator try up to 200 constraint combinations per task slot and discarding ones outside the [2, 30] valid-set band means I don't need a perfectly-tuned constraint distribution — the validity check enforces difficulty for me.
 - **(after S9)** Pure text search is a deliberate research choice, not a limitation. A semantic search would do the agent's work for it and contaminate the architectural comparison. Document this explicitly in the thesis.
 - **(after S9)** Oracle-agent sanity checks are cheap and catch real bugs. Writing 50 lines of cheating code that exercises every tool against every task gave 100% confidence the environment is wired correctly *before* any LLM was involved. Lesson: separate environment correctness from agent correctness, test them independently, in that order.
+
+- **(after S10)** OneDrive is incompatible with Python virtual environments. The sync engine holds file handles open intermittently, which makes any operation that touches the venv (uv add, pip install, even `git status` occasionally) susceptible to "Access denied" errors. Should have moved the project out at first sign of trouble, not waited until step C. Move was 30 seconds, problem disappeared.
+- **(after S10)** Bedrock's model invocation requirements change over time. AWS migrated Llama 3.1 8B Instruct from on-demand to inference-profile-only invocation. The fix was a 3-character prefix (`us.`), but the error message was clear about the cause. Worth keeping the `BedrockClient.model_id` constant explicit and the error-handling resilient — these invocation conventions are not stable AWS contracts.
+- **(after S11)** Edit Python carefully, especially around `@dataclass` classes. A small indentation slip turned a class method into a module-level orphan and produced an AttributeError that took 5 minutes to track down. After any manual edit, run a quick import check on the affected module before moving on.
+- **(after S12)** Always inspect at least one trace file before declaring a pilot's findings final. The aggregated numbers told a story about architectural performance, but the trace revealed *why* — the agents weren't using `candidate_asins`, so progressive narrowing wasn't actually happening. This is the kind of observation that turns a numerical result into a methodologically defensible thesis chapter, and it's only visible from individual traces, never from aggregates.
 
 ---
 
@@ -445,4 +455,199 @@ Committed: `1075590`.
 
 ---
 
-*Next: reactive agent + Bedrock integration.*
+## Session 10
+
+Reactive agent + first real LLM in the loop. The week's been about getting Bedrock fully wired up and Llama 3.1 8B actually answering a query, then plugging it into a real ReAct loop.
+
+AWS setup was the day-one drag. Started with the AWS Academy Lab from NCI but quickly switched to a personal account with $100 free credit — Academy Lab has time-limited sessions and restricted services, which would be a pain to manage across the whole project. Personal account = full Bedrock access, no time pressure.
+
+Setup steps that ate the time:
+- Billing alert (zero-spend budget at $10 threshold) → 2 min.
+- Region switch to us-east-1 → 1 min. Llama 3.1 8B isn't in eu-west-1, has to be us-east-1.
+- Model access — turned out to be the easiest step. AWS retired the manual "Model access" page; serverless foundation models are now auto-enabled on first invocation. Was bracing for a "wait 24 hours for approval" thing, didn't need to. Saved a day.
+- IAM user with `AmazonBedrockFullAccess` policy → 5 min.
+- Generated access keys, saved them somewhere safe.
+- `winget install Amazon.AWSCLI` then `aws configure` then `aws sts get-caller-identity` to verify. Worked first try.
+
+Then the smoke test. First attempt:
+
+```python
+MODEL_ID = "meta.llama3-1-8b-instruct-v1:0"
+```
+
+→ `ValidationException: Invocation of model ID ... with on-demand throughput isn't supported. Retry your request with the ID or ARN of an inference profile that contains this model.`
+
+Turns out AWS recently moved Llama 3.1 8B to inference-profile-only invocation. The fix is a prefix:
+
+```python
+MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"   # the us.* prefix
+```
+
+Re-ran, got back `'\n\nOK.'` with 28 tokens used. Working.
+
+Cost = $0.000007. Microscopic. Even if every call were that small, we'd spend pennies on a thousand runs.
+
+**OneDrive bit me again.** When trying to `uv add boto3`, got an Access Denied error on `.venv\Lib\site-packages\agentic_shopping_ablation-0.1.0.dist-info`. OneDrive was holding the dist-info files open. The Move-Item command to relocate the project also failed once ("item is in use") — had to `cd C:\Users\sanat` to release the directory, then close VS Code, then the move worked. Project now lives at `C:\Users\sanat\Projects\agentic-shopping-ablation`. Should have done this in Session 4. The .venv is fully out of OneDrive now and the pain has stopped.
+
+Built the reactive agent itself across 4 modules in `src/agents/`:
+- `llm_client.py` — `LLMClient` Protocol + `BedrockClient` + `MockClient`. Cost tracking baked into BedrockClient (every call accumulates `total_input_tokens`, `total_output_tokens`).
+- `prompts.py` — system message with the 5-tool spec + initial user message template + per-step observation message template.
+- `parser.py` — JSON output parsing with markdown-fence stripping and balanced-brace extraction. Falls back gracefully if Llama wraps the JSON in ```json ... ``` (it sometimes does).
+- `reactive_agent.py` — the actual loop. Thought → Action → Observation. Max 5 consecutive parse errors before giving up. Conversation history accumulates verbatim (no summarisation — would muddle the architectural comparison).
+
+Three things I built into the design that I want to remember for the thesis methodology:
+1. The Protocol abstraction means the agent never imports boto3. Sanity tests run against MockClient with zero AWS spend. Same agent code.
+2. BedrockClient's cost-tracking gives every run a token + dollar receipt. Useful for the thesis methodology section ("each run logged its cost").
+3. Lazy boto3 client creation. MockClient users don't even need boto3 installed.
+
+Mock sanity tests, 2 scenarios, both pass:
+- Happy path: 3 canned responses → agent executes search/filter/purchase → buys optimal product.
+- Parse recovery: first response is unparseable garbage, agent gets an error observation and self-corrects → buys optimal on the 2nd valid response.
+
+Then the first real Bedrock run, single task T005 ("phone accessory under $8, highest-rated"):
+
+```
+Steps taken:        8
+Terminated:         True
+Terminal reason:    purchased
+Purchased ASIN:     B07Q3G17GD
+LLM calls:          8
+Input tokens:       13,068
+Output tokens:      460
+Parse errors:       0  ← every JSON valid first try
+Wall clock:         4.69s
+Hard Success:       YES (purchased in valid_set)
+Preference Success: NO (not the optimal)
+Cost:               $0.002983
+```
+
+Worked first try. 0 parse errors. Hard Success = YES. Llama 3.1 8B emitting clean JSON without prompt-tuning was a pleasant surprise. The Preference Success = NO is interesting — the task said "highest-rated" and the agent picked a valid-but-not-optimal product. That's nuanced behaviour exactly aligned with what RQ1 is trying to measure. Cost projection for 1,200 runs: ~$3.60. Way under budget.
+
+Also: every Bedrock call now logs `BedrockClient initialised: model=us.meta.llama3-1-8b-instruct-v1:0, region=us-east-1` on session start. Methodologically defensible — every experimental run has a provable model ID in its trace. Supervisor or thesis reviewer can audit.
+
+Committed: `062a5f6` for the agent code + `3397985` for the bedrock_smoke_test script (committed earlier).
+
+---
+
+## Session 11
+
+Planning agent (plan-then-execute + replan-on-failure). Same infrastructure as the reactive agent — same `LLMClient`, same `Environment`, same parsing utilities — but a different prompt and a fundamentally different control loop.
+
+The interesting design question was how to handle ASIN-based actions in the initial plan. The agent can't know which ASIN to `purchase()` upfront because it hasn't done any search yet. Two options:
+
+(a) Symbolic placeholders. Agent emits `"product_id": "<TO_BE_DETERMINED>"` and we resolve it during execution by looking at prior observations.
+(b) Plan only up to narrowing; once execution finishes (because the plan ended without a purchase), trigger a replan that has the narrowed candidates in context, and now the agent emits the final purchase.
+
+Went with (b). Cleaner. Closer to how ReWOO's evidence-collection-then-solver works. And our replan-on-failure mechanism already covers the trigger — "plan finished without purchasing" is just another replan trigger alongside "tool error".
+
+Built across 3 new modules in `src/agents/`:
+- `planning_prompts.py` — separate system message explaining the two-phase model. Initial plan prompt + replan prompt (with execution-history-so-far passed in).
+- `planning_parser.py` — parses `{"plan_summary": "...", "plan": [<action>, <action>, ...]}` into a list of validated Action objects. Reuses the markdown-stripping and JSON-extraction helpers from the reactive parser.
+- `planning_agent.py` — the loop. Plan → execute action-by-action → if error or plan-finished-without-purchase, replan (up to 3 times). Critical: NO LLM call between actions during execution. That's the efficiency claim ReWOO makes.
+
+Hit a real bug after wiring it all up. The Bedrock test failed with:
+```
+AttributeError: 'BedrockClient' object has no attribute 'complete'
+```
+Confusing because we'd literally been using `BedrockClient.complete()` an hour earlier for the reactive agent. Traced it to the runtime log line I added earlier for model-ID provenance. The edit had screwed up indentation:
+
+```python
+class BedrockClient:
+    model_id: str = BEDROCK_MODEL_ID
+    ...
+def _ensure_client(self):   # ← NOT indented as a method — class ends here
+    ...
+    def complete(           # ← orphan, not a class member anymore
+```
+
+So `BedrockClient` had no `complete()` because Python saw the class as ending after the fields. Re-indented properly, ran again, worked.
+
+**Lesson:** when manually editing Python files, especially around `@dataclass` classes, indentation is everything. I should have run the file's `python -c "from src.agents.llm_client import BedrockClient; print(BedrockClient.complete)"` *immediately* after the edit, not waited until I was running the planning agent and got a cryptic AttributeError.
+
+Mock tests passed (2/2). Real Bedrock test on T005 (same task as the reactive run for direct comparison) gave:
+
+| | Reactive (S10) | Planning (S11) |
+|---|---|---|
+| Steps | 8 | 14 |
+| LLM calls | 8 | **4** |
+| Input tokens | 13,068 | **11,975** |
+| Output tokens | 460 | 489 |
+| Wall clock | 4.69s | **3.43s** |
+| Hard Success | YES | YES |
+| Preference Success | NO | NO |
+| Replans used | — | **3/3** |
+
+Planning halved the LLM calls (4 vs 8) — that's the central efficiency claim manifesting. Token reduction was smaller (~8%) because each plan after the first includes execution history. Wall-clock 2.5× faster. Both got Hard=YES / Pref=NO — same as reactive.
+
+Important caveat: **planning burned all 3 replans on this single task.** Replan budget hit max. The plan-then-execute architecture had to keep trying because each plan terminated without a purchase. That's brittle in a way I didn't fully appreciate at design time — the architecture *forces* a replan whenever a plan ends without `purchase()` in it, even when the plan was perfectly reasonable.
+
+Committed: `7569fe6`.
+
+---
+
+## Session 12
+
+The pilot. The actual model-vs-baseline experimental run that the supervisor's points 3 + 4 wanted. 80 runs (20 stratified tasks × 2 architectures × 2 noise levels × 1 seed). Took 18 minutes wall-clock, cost $0.24. All runs completed without unrecoverable errors.
+
+Built the experimental machinery first in `src/experiments/`:
+- `scorer.py` — produces `RunMetrics` from an episode + task ground truth. Computes Hard Success, Preference Success, Constraint Satisfaction Rate, the 4 efficiency metrics, and a categorical `failure_mode` label.
+- `trace_store.py` — writes a JSONL per run at `data/traces/<task>__<arch>__noise<p>__seed<n>.jsonl`. Header line = metadata; subsequent lines = step records.
+- `results.py` — aggregates runs, renders the markdown summary report with success table + efficiency table + failure-mode breakdown + per-task crosstab.
+- `runner.py` — orchestrator. Stratified task selection (round-robin per (bucket, difficulty)). Iterates the matrix. Writes results incrementally so a crash mid-run doesn't lose progress.
+
+Smoke-tested the orchestrator with MockClient first (zero AWS spend) — 4 mock runs end-to-end. Verified: stratified selection picks balanced tasks, both agents run, scoring produces the right metrics, traces get written with canonical names, summary report renders without errors. Cleared the path for the real run.
+
+Real pilot run. The headline results:
+
+**Success metrics (means):**
+
+| | Noise | Hard Success | Pref Success | Constraint Sat |
+|---|---|---|---|---|
+| Reactive | 0.0 | 15% | 5% | 17.5% |
+| Reactive | 0.2 | **25%** | **10%** | **30%** |
+| Planning | 0.0 | 15% | 0% | 26.7% |
+| Planning | 0.2 | **0%** | 0% | 0% |
+
+**Efficiency metrics (means):**
+
+| | Noise | Env Steps | LLM Calls | Total Tokens | Wall-Clock |
+|---|---|---|---|---|---|
+| Reactive | 0.0 | 11.0 | 12.55 | 21,305 | 6.39s |
+| Reactive | 0.2 | 6.75 | 10.35 | 24,070 | 5.54s |
+| Planning | 0.0 | 10.4 | **3.20** | **8,967** | **2.53s** |
+| Planning | 0.2 | 6.9 | 3.55 | 6,490 | 2.52s |
+
+Three findings stand out, and **two of our three directional hypotheses appear to be pointing the wrong way**:
+
+**1. Planning wins on efficiency by a wide margin.** 3.5–4× fewer LLM calls. 50–73% fewer tokens. 2.5× faster wall-clock. This contradicts RQ2's prediction that reactive would win on tokens for small open-weight models. The pilot suggests ReWOO's efficiency claim extends to Llama 3.1 8B. If this holds in the full experiment, that's a publishable finding.
+
+**2. Reactive's robustness is unexpected.** Hard Success went 15% → 25% under noise. Performance *improved* with perturbation. Could be small-sample noise (n=20 per cell), or genuine — noise as regulariser. Need more seeds to know.
+
+**3. Planning collapses under noise.** 15% → 0% Hard Success. The replan mechanism, designed to provide structured recovery, instead consumes its 3-replan budget on transient failures without converging. **This contradicts RQ3's prediction** that planning would be more robust. The failure-mode distribution confirms it: 47.5% of planning runs hit `replan_limit_exceeded`.
+
+Failure modes are *qualitatively different* between architectures. Reactive's dominant failure mode is `no_purchase:unknown` (47.5%) — thinks and acts but never commits to a `purchase()`. Planning's dominant failure is `replan_limit_exceeded` (47.5%) — burns its 3 replans. Both fail at similar rates but in completely different ways. This is the kind of mechanism-level finding that needs to be foregrounded in the thesis discussion.
+
+Then I opened one trace file — `T010__planning__noise0.2__seed42.jsonl` — to understand why so many runs were failing. Found something important:
+
+The agent did `filter(price ≤ 16)` and then `filter(stars ≥ 4.7)`. Both calls *succeeded*. But each was applied to the **whole catalogue** rather than to the previous result set. The `filter` tool accepts a `candidate_asins` argument for progressive narrowing, but the agent didn't pass it. Each filter call was effectively a fresh global query. Looking at the observations:
+
+- After `filter(price ≤ 16)`: 143 matches returned — products from EVERY bucket, not just cameras.
+- After `filter(stars ≥ 4.7)`: 92 matches — again all buckets. The cameras matching the original task aren't surfaced because the filter is global.
+
+This is a real methodological observation. The agent assumes filters chain. They don't, unless `candidate_asins` is explicitly passed. **This affects both architectures equally** — so the relative comparison (reactive vs planning) is still valid — but the absolute Hard Success numbers are depressed across the board.
+
+The fix is simple: add explicit instruction in the system prompt about `candidate_asins` chaining. That's a single prompt change, applied identically to both agents.
+
+Decided to write up the pilot report *first*, then make the prompt fix, then re-run the pilot, so we have a clean before/after comparison. The current results stand on their own as an honest snapshot of small-model performance without explicit chaining instruction. Re-running will let us measure how much of the absolute-success gap was the chaining limitation vs. genuine model capacity.
+
+Committed pilot run: TBD next commit. Pilot report written at `reports/pilot_report.md`.
+
+TODO before re-run:
+- Add explicit `candidate_asins` instruction to both `prompts.py` (reactive) and `planning_prompts.py` (planning).
+- Quick mock test to verify the prompt change doesn't break anything.
+- Re-run pilot. Same seed, same matrix.
+- Compare side-by-side. Expected: Hard Success rises meaningfully for both agents.
+
+---
+
+*Next: prompt fix for `candidate_asins` chaining + confirmatory pilot re-run.*
