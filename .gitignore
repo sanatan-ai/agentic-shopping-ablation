@@ -35,3 +35,6 @@ data/raw/*
 
 # Reports build artefacts
 reports/*.pdf
+
+data/traces/
+data/results/

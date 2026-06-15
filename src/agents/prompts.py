@@ -18,6 +18,12 @@ TOOLS:
 4. get_details(product_id): Full info for a single ASIN.
 5. purchase(product_id): COMMIT to a final product. This ends the task. Use only when sure.
 
+IMPORTANT — Chaining filters:
+The filter tool, when called without candidate_asins, searches the ENTIRE catalogue. To progressively narrow a result set, you MUST pass the ASINs from your previous result as candidate_asins. For example:
+  1. filter(attribute="bucket", operator="==", value="Cameras") → returns a list of cameras
+  2. filter(attribute="price", operator="<=", value=50, candidate_asins=[<asins from step 1>]) → narrows the cameras to under $50
+Without candidate_asins, step 2 would search the whole catalogue (not just cameras), which would dilute your result. The same applies when narrowing search results.
+
 RESPONSE FORMAT:
 You MUST respond with a single JSON object with two keys:
 - "thought": a brief string explaining your reasoning for this step.
