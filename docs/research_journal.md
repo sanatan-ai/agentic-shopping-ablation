@@ -373,6 +373,8 @@ This is a running list — added after I noticed the journal entries were where 
 | 26 | Bedrock model ID requires `us.` inference-profile prefix: `us.meta.llama3-1-8b-instruct-v1:0` (AWS migrated Llama 3.1 8B off direct on-demand invocation) | S10 |
 | 27 | Planning agent's plan/purchase resolution = option (b): plan up to narrowing, replan for the final purchase. Trigger on either error OR plan-finished-without-purchase. | S11 |
 | 28 | Pilot configuration locked: 20 stratified tasks × 2 architectures × 2 noise levels × 1 seed = 80 runs at ~$0.24 cost | S12 |
+| 29 | Prompt addendum teaching `candidate_asins` chaining locked into both agents identically. Wording: same paragraph in same position. The post-fix prompts are the "fair comparison" condition. | S13 |
+| 30 | Stop pilot iteration here. n=20 per cell is too small to discriminate prompt-effect noise from signal. Capstone full experiment is the right place to retest. Both pilots cited as a documented chaining-instruction ablation in the thesis. | S13 |
 
 ---
 
@@ -387,11 +389,12 @@ This is a running list — added after I noticed the journal entries were where 
 - **(after S8)** Resampling-with-validity is more robust than upfront constraint design. Letting the generator try up to 200 constraint combinations per task slot and discarding ones outside the [2, 30] valid-set band means I don't need a perfectly-tuned constraint distribution — the validity check enforces difficulty for me.
 - **(after S9)** Pure text search is a deliberate research choice, not a limitation. A semantic search would do the agent's work for it and contaminate the architectural comparison. Document this explicitly in the thesis.
 - **(after S9)** Oracle-agent sanity checks are cheap and catch real bugs. Writing 50 lines of cheating code that exercises every tool against every task gave 100% confidence the environment is wired correctly *before* any LLM was involved. Lesson: separate environment correctness from agent correctness, test them independently, in that order.
-
 - **(after S10)** OneDrive is incompatible with Python virtual environments. The sync engine holds file handles open intermittently, which makes any operation that touches the venv (uv add, pip install, even `git status` occasionally) susceptible to "Access denied" errors. Should have moved the project out at first sign of trouble, not waited until step C. Move was 30 seconds, problem disappeared.
 - **(after S10)** Bedrock's model invocation requirements change over time. AWS migrated Llama 3.1 8B Instruct from on-demand to inference-profile-only invocation. The fix was a 3-character prefix (`us.`), but the error message was clear about the cause. Worth keeping the `BedrockClient.model_id` constant explicit and the error-handling resilient — these invocation conventions are not stable AWS contracts.
 - **(after S11)** Edit Python carefully, especially around `@dataclass` classes. A small indentation slip turned a class method into a module-level orphan and produced an AttributeError that took 5 minutes to track down. After any manual edit, run a quick import check on the affected module before moving on.
 - **(after S12)** Always inspect at least one trace file before declaring a pilot's findings final. The aggregated numbers told a story about architectural performance, but the trace revealed *why* — the agents weren't using `candidate_asins`, so progressive narrowing wasn't actually happening. This is the kind of observation that turns a numerical result into a methodologically defensible thesis chapter, and it's only visible from individual traces, never from aggregates.
+- **(after S13)** Identical prompt interventions don't have identical effects across architectures on small open-weight models. The chaining instruction helped planning by +10pp Hard Success and hurt reactive by −5pp. Likely mediated by per-call system-prompt overhead: reactive consults the system prompt every step (~11 times per episode), planning only 3-4 times. Architectures that "pay" for the prompt more often suffer more when the prompt gets longer. This asymmetry is real and worth foregrounding in the thesis — it cautions against assuming a prompt-engineering improvement is architecture-agnostic.
+- **(after S13)** Know when to stop iterating. The temptation to keep tweaking prompts until both architectures improve was strong. Resisting it is the right call. Pilot iteration with n=20 chases noise; the full experiment is where statistical claims get made. Document the interim findings honestly and move on.
 
 ---
 
@@ -650,4 +653,95 @@ TODO before re-run:
 
 ---
 
-*Next: prompt fix for `candidate_asins` chaining + confirmatory pilot re-run.*
+## Session 13
+
+Chaining-fix iteration. The pilot inspection in Session 12 surfaced that both agents were calling `filter` without `candidate_asins`, so each filter was a global query rather than progressive narrowing. Today's session: write a prompt addendum teaching both agents to chain, re-run the same pilot matrix, compare before/after.
+
+Made the intervention identical for both architectures — exactly the same paragraph inserted into both system prompts at the same position (after the tool spec, before the response/plan format section). Same wording, same examples. The point of identical phrasing is so any architectural performance difference can't be attributed to differential prompt quality.
+
+The instruction was:
+
+```
+IMPORTANT — Chaining filters:
+The filter tool, when called without candidate_asins, searches the ENTIRE catalogue.
+To progressively narrow a result set, you MUST pass the ASINs from your previous
+result as candidate_asins. For example:
+  1. filter(attribute="bucket", operator="==", value="Cameras") → returns a list of cameras
+  2. filter(attribute="price", operator="<=", value=50, candidate_asins=[<asins from step 1>])
+     → narrows the cameras to under $50
+Without candidate_asins, step 2 would search the whole catalogue (not just cameras),
+which would dilute your result.
+```
+
+Hit some Git friction before the rerun. I had to:
+- stash the prompt edits (`git stash push`)
+- rename baseline artefacts (`reports/pilot_report.md` → `pilot_report_baseline.md`, results JSON likewise, `data/traces/` → `data/traces_baseline/`)
+- commit the renames (Git correctly detected them as renames, not deletes+adds — 80+ files, all clean)
+- pop the stash — which hit a `.gitignore` conflict because both the stash and working tree had `.gitignore` edits
+- resolve by `git checkout -- .gitignore` (the stashed version was a superset, added both `data/traces/` and `data/results/`)
+- pop succeeded cleanly the second time
+
+Added `data/traces/` and `data/results/` to gitignore going forward. The baseline traces are committed (they're historical record of the pre-fix behaviour); future runs' traces stay local only. Cleaner repo.
+
+Mock sanity tests on both agents still passed 2/2 each. Then re-ran the pilot: same matrix (20 tasks × 2 archs × 2 noise × 1 seed = 80 runs), same seed=42, ~$0.24 again, ~18 min.
+
+### Results comparison
+
+The before/after on the noise=0 cell:
+
+| | Baseline | Post-fix | Δ |
+|---|---|---|---|
+| Planning Hard Success | 15% | **25%** | +10pp ✓ |
+| Planning Constraint Sat | 26.7% | **51.7%** | +25pp ✓ |
+| Planning total tokens | 8,967 | 6,465 | −28% |
+| Reactive Hard Success | 15% | **10%** | **−5pp** ✗ |
+| Reactive Constraint Sat | 17.5% | 20.0% | +2.5pp |
+| Reactive total tokens | 21,305 | 18,393 | −14% |
+
+And the noise=0.2 cell:
+
+| | Baseline | Post-fix | Δ |
+|---|---|---|---|
+| Planning Hard Success | 0% | 0% | 0 (still collapsed) |
+| Reactive Hard Success | **25%** | **10%** | **−15pp** ✗ |
+
+**The fix helped planning meaningfully and hurt reactive.** Same instruction. Different effects. This was not what I predicted.
+
+### Why I think this happened
+
+The chaining instruction adds ~120 tokens to the system prompt. Reactive uses the system prompt **once per step** — with 11+ calls per episode at noise=0, that's 1,320+ tokens of system prompt repetition. Planning uses the system prompt **3-4 times per episode** (one per plan + replans).
+
+For a small model (Llama 3.1 8B), longer system prompts hurt the per-step decision quality. The model has a fixed "attention budget" — more prompt to parse means less left for the actual task. Reactive consults the system prompt more often per episode, so it pays this cost more often.
+
+This is a *small-model phenomenon*. GPT-4-class models wouldn't show this asymmetry because they have more attention headroom. But this study is *specifically* about small open-weight models, so the asymmetry isn't a confounder — it's a real architectural finding: **on small models, prompt engineering interventions don't generalize across architectures uniformly. The same instruction can help one and hurt another, mediated by how often each architecture consults the system prompt.**
+
+This is publishable in its own right. I should be honest about it in the thesis.
+
+### Why I'm stopping iteration here
+
+The intuitive next move is to try different chaining-instruction wordings until both architectures improve. I am explicitly NOT doing that, because:
+
+1. Further prompt tweaking risks p-hacking — optimising prompts until results match my hypotheses is bad science.
+2. The pilot's purpose was to verify the pipeline works and surface unexpected behaviour. **It did both.** Two complete data points (baseline + post-fix) at the same seed are enough to demonstrate methodology.
+3. n=20 per cell is too small to firmly conclude the differential prompt effect is real vs sample noise. The Capstone semester full experiment (50 tasks × 3 seeds = 150 per cell) will give the statistical power to discriminate. Iterating on the pilot risks chasing noise.
+4. The data we have *is* a story: a chaining-instruction ablation showing asymmetric architectural sensitivity. Honest framing.
+
+### What goes into the full experiment
+
+Both architectures will use the **post-fix prompts** for the full Capstone experiment. The chaining instruction is now methodologically locked. Both pilot runs (baseline and post-fix) will be cited in the thesis as a pre-experiment ablation, with the post-fix prompts justified as the "fair" comparison condition where both agents have been told how `candidate_asins` works.
+
+Committed: `be181c3` (post-fix results) + `03ee532` (the prompt change itself) + `6e68816` (the rename). Three commits for the iteration.
+
+### What's still surprising / needs the full experiment to resolve
+
+- Planning's collapse at noise=0.2 is now consistent across both pilots. Either genuine architectural fragility or interaction with another bug we haven't found. Want more seeds + more tasks before concluding.
+- Reactive's robustness pattern (improved under noise in baseline, didn't improve post-fix) is unstable across pilots. Statistical noise more likely than real signal at this sample size.
+- Both architectures' absolute Hard Success is still low (≤25%). Llama 3.1 8B's capacity on these tasks is the dominant constraint, not the prompt. Worth examining whether 70B-class would clear this ceiling — that's a planned fallback (D-9).
+
+### Where the project sits
+
+Methodology demonstrated end-to-end. Both pilots in Git. Reports written. Journal current. **The Capstone semester opens with a working pipeline, two pilots-worth of preliminary signal, three sharpened research questions, and a known set of interesting tensions to investigate.** That's a good place to start a 1,200-run experiment.
+
+---
+
+*Next: Capstone semester — full 1,200-run experiment (50 tasks × 2 archs × 4 noise levels × 3 seeds).*
