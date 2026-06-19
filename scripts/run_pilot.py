@@ -14,6 +14,7 @@ Usage:
 """
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sys
@@ -33,6 +34,10 @@ TRACES_DIR = PROJECT_ROOT / "data" / "traces"
 RESULTS_JSON = PROJECT_ROOT / "data" / "results" / "pilot_results.json"
 REPORT_PATH = PROJECT_ROOT / "reports" / "pilot_report.md"
 
+# Model IDs — default 8B; pass --70b on the command line to use 70B instead
+DEFAULT_MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
+LLAMA_70B_MODEL_ID = "us.meta.llama3-1-70b-instruct-v1:0"
+
 # Pilot configuration
 NUM_TASKS = 20
 ARCHITECTURES = ["reactive", "planning"]
@@ -47,6 +52,13 @@ def main() -> int:
         datefmt="%H:%M:%S",
     )
     log = logging.getLogger("run_pilot")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--70b", dest="use_70b", action="store_true",
+                        help="Use Llama 3.1 70B instead of the default 8B")
+    args = parser.parse_args()
+    model_id = LLAMA_70B_MODEL_ID if args.use_70b else DEFAULT_MODEL_ID
+    log.info("Using model: %s", model_id)
 
     log.info("Loading catalogue from %s", CATALOGUE_PARQUET)
     catalogue = pd.read_parquet(CATALOGUE_PARQUET)
@@ -69,7 +81,7 @@ def main() -> int:
     log.info("Estimated cost: ~$%.2f (Bedrock)", estimated_cost)
     log.info("=" * 70)
 
-    llm = BedrockClient()
+    llm = BedrockClient(model_id=model_id)
 
     metrics = run_pilot(
         tasks=tasks,

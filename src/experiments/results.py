@@ -31,6 +31,8 @@ def _safe_std(xs: list[float]) -> float:
 def aggregate(runs: list[RunMetrics]) -> pd.DataFrame:
     """Aggregate by (architecture, noise_level). Returns a DataFrame of means."""
     df = runs_to_dataframe(runs)
+    # Per-LLM-call latency = total wall-clock / number of LLM calls
+    df["latency_per_call_seconds"] = df["wall_clock_seconds"] / df["llm_calls"].replace(0, 1)
     grouped = df.groupby(["architecture", "noise_level"]).agg(
         n_runs=("task_id", "count"),
         hard_success_rate=("hard_success", "mean"),
@@ -42,6 +44,7 @@ def aggregate(runs: list[RunMetrics]) -> pd.DataFrame:
         input_tokens_mean=("input_tokens", "mean"),
         output_tokens_mean=("output_tokens", "mean"),
         wall_clock_mean=("wall_clock_seconds", "mean"),
+        latency_per_call_mean=("latency_per_call_seconds", "mean"),
         parse_errors_mean=("parse_errors", "mean"),
     ).reset_index()
     return grouped
@@ -79,15 +82,16 @@ def write_summary_report(
 
     # ----- Efficiency table ----- #
     lines.append("\n## Efficiency metrics (means)\n")
-    lines.append("| Architecture | Noise | n | Env Steps | LLM Calls | Total Tokens | Wall-Clock (s) |")
-    lines.append("|---|---|---|---|---|---|---|")
+    lines.append("| Architecture | Noise | n | Env Steps | LLM Calls | Total Tokens | Wall-Clock (s) | Latency/Call (s) |")
+    lines.append("|---|---|---|---|---|---|---|---|")
     for _, row in agg.iterrows():
         lines.append(
             f"| {row['architecture']} | {row['noise_level']:.1f} | {int(row['n_runs'])} "
             f"| {row['env_steps_mean']:.2f} "
             f"| {row['llm_calls_mean']:.2f} "
             f"| {row['total_tokens_mean']:.0f} "
-            f"| {row['wall_clock_mean']:.2f} |"
+            f"| {row['wall_clock_mean']:.2f} "
+            f"| {row['latency_per_call_mean']:.2f} |"
         )
 
     # ----- Failure-mode breakdown ----- #
