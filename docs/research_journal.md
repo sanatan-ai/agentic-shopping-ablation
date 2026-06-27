@@ -374,7 +374,11 @@ This is a running list — added after I noticed the journal entries were where 
 | 27 | Planning agent's plan/purchase resolution = option (b): plan up to narrowing, replan for the final purchase. Trigger on either error OR plan-finished-without-purchase. | S11 |
 | 28 | Pilot configuration locked: 20 stratified tasks × 2 architectures × 2 noise levels × 1 seed = 80 runs at ~$0.24 cost | S12 |
 | 29 | Prompt addendum teaching `candidate_asins` chaining locked into both agents identically. Wording: same paragraph in same position. The post-fix prompts are the "fair comparison" condition. | S13 |
-| 30 | Stop pilot iteration here. n=20 per cell is too small to discriminate prompt-effect noise from signal. Capstone full experiment is the right place to retest. Both pilots cited as a documented chaining-instruction ablation in the thesis. | S13 |
+| 30 | Stop pilot iteration here. n=20 per cell is too small to discriminate prompt-effect noise from signal. Capstone full experiment is the right place to retest. Both pilots cited as a documented chaining-instruction ablation in the thesis. | S13 |`
+| 31 | Region locked at us-east-1 (supervisor confirmed). eu-west-1 was a latency-convenience suggestion, not correctness. Document the deviation as a methodology note. | S14 |
+| 32 | Full Capstone experiment runs on Llama 3.1 70B (`us.meta.llama3-1-70b-instruct-v1:0`). Floor-effect criterion met after post-fix pilot showed 8B below 30% Hard Success. Supervisor authorised. | S14 |
+| 33 | CloudWatch latency = primary source for full experiment. Python local timing = sanity cross-check. Methodology footnote will note the difference between pilot (Python) and main experiment (CloudWatch). | S14 |
+
 
 ---
 
@@ -395,6 +399,9 @@ This is a running list — added after I noticed the journal entries were where 
 - **(after S12)** Always inspect at least one trace file before declaring a pilot's findings final. The aggregated numbers told a story about architectural performance, but the trace revealed *why* — the agents weren't using `candidate_asins`, so progressive narrowing wasn't actually happening. This is the kind of observation that turns a numerical result into a methodologically defensible thesis chapter, and it's only visible from individual traces, never from aggregates.
 - **(after S13)** Identical prompt interventions don't have identical effects across architectures on small open-weight models. The chaining instruction helped planning by +10pp Hard Success and hurt reactive by −5pp. Likely mediated by per-call system-prompt overhead: reactive consults the system prompt every step (~11 times per episode), planning only 3-4 times. Architectures that "pay" for the prompt more often suffer more when the prompt gets longer. This asymmetry is real and worth foregrounding in the thesis — it cautions against assuming a prompt-engineering improvement is architecture-agnostic.
 - **(after S13)** Know when to stop iterating. The temptation to keep tweaking prompts until both architectures improve was strong. Resisting it is the right call. Pilot iteration with n=20 chases noise; the full experiment is where statistical claims get made. Document the interim findings honestly and move on.
+- **(after S14)** Always check for pre-existing supervisor instructions before scoping infrastructure work. The AWS checklist had been sent before Session 10 and I missed it because I was focused on the plan I was building with the AI collaborator. Four items needed retrofitting. Cost a day. Lesson: at every new phase of work, ask "did the supervisor send any instructions about this?" before designing from scratch.
+- **(after S14)** When you've missed something, the only winning move is to be transparent fast. Acknowledged the gaps, took ownership, asked his guidance on the open question (region), started the cheap items in parallel. Result: he made clean calls, accepted the receipts, authorised the 70B escalation. Trying to hide the gaps or rationalise them would have damaged trust. Direct ownership repaired it.
+- **(after S14)** Trust your pre-experimental decisions even when results invert your hypotheses. All three RQ directional predictions appear to be falsified in the pilot. The first instinct is to question the methodology — "did we make a mistake somewhere?" Often the discipline of the locked decisions (action format, prompts, seeds, valid-set bounds) is exactly what gives the result credibility. RQ inversions are the most scientifically interesting outcome possible. Don't second-guess them; report them honestly.
 
 ---
 
@@ -744,4 +751,113 @@ Methodology demonstrated end-to-end. Both pilots in Git. Reports written. Journa
 
 ---
 
-*Next: Capstone semester — full 1,200-run experiment (50 tasks × 2 archs × 4 noise levels × 3 seeds).*
+## Session 14
+
+Three things happened back-to-back: a supervisor checklist I'd missed surfaced, the infrastructure gaps got closed, and the 70B escalation pilot ran. Big session. Worth capturing all of it.
+
+### The checklist gap
+
+Supervisor pinged about pilot findings and tacked on requests for the determinism test and CloudWatch latency, framed as "part of last week's checklist." I went back through old messages and found he had sent a 7-item AWS setup checklist before Session 10. I'd ignored it at the time because I was confident in the plan I was working through with the AI collaborator and wanted to keep momentum.
+
+What I'd actually done vs what he'd asked for:
+
+| Supervisor asked for | Status |
+|---|---|
+| Bedrock in eu-west-1 | ❌ Used us-east-1 |
+| 8B + 70B access | ⚠️ Got 8B (auto-enabled), no 70B |
+| S3 bucket for artefacts | ❌ Local disk only |
+| Five-line boto3 smoke test | ✅ Done |
+| Determinism test at temp=0 | ❌ Not done |
+| CloudWatch latency capture | ❌ Used Python local timing |
+| 10-task mini pilot | ✅ Done (20-task, bigger than required) |
+
+So 4 of 7 items unmet. The reactive instinct was to scramble. The right move was to be honest about it — write the supervisor, take ownership of the gaps, ask his guidance on the region question rather than just unilaterally switching.
+
+Sent a short acknowledgement message taking responsibility for the gaps, flagging us-east-1 as a deliberate-but-unauthorised choice, and asking him to call between (a) switch to eu-west-1 and rerun, or (b) stay and document. Started the cheap items in parallel without waiting for his reply.
+
+### Closing the gaps
+
+**Determinism test.** Wrote `scripts/bedrock_determinism_test.py`. Two consecutive Bedrock Converse calls at temperature=0.0 with the prompt "List the first 5 prime numbers as a comma-separated list. Reply with the list and nothing else." Both returned byte-identical: `'\n\n2, 3, 5, 7, 11'`. Identical token counts (in=36, out=15).
+
+Important methodological caveat noted in the journal: AWS doesn't formally guarantee determinism at temp=0. Two calls is empirical evidence, not proof. The pilot's reproducibility argument rests on this empirical observation. Mentioning it explicitly in the thesis methodology.
+
+**CloudWatch latency.** Wrote `scripts/bedrock_cloudwatch_latency.py`. Queries the `AWS/Bedrock` `InvocationLatency` metric — AWS auto-captures it on every Bedrock call. First attempt failed with AccessDenied because `bedrock-research-user` only had `AmazonBedrockFullAccess`. Added `CloudWatchReadOnlyAccess` policy. Re-ran. Got mean 287.5ms for the two determinism-test calls. Server-side latency working.
+
+Decision (post-supervisor-call): keep pilot reports as Python local timing, switch to CloudWatch as primary source for the full Capstone experiment, with Python as sanity cross-check. Will note this explicitly as a methodology footnote — defensible design choice, not a flaw.
+
+**S3 bucket.** Created `bedrock-research-sanatan-25103130` (used student ID for global uniqueness) in us-east-1. Added `AmazonS3FullAccess` to the IAM user. Verified with `aws s3 ls`.
+
+**70B access.** Tested directly with a small Converse call using `us.meta.llama3-1-70b-instruct-v1:0`. Returned `'\n\nOK.'` first try. AWS auto-enables 70B same as 8B; no manual request needed.
+
+Sent the full receipts package to the supervisor with all five items confirmed plus a flag on the floor-effect criterion (post-fix pilot shows both architectures below 30% Hard Success at noise=0 → escalate to 70B per his criterion).
+
+### Supervisor's response and final decisions
+
+Supervisor accepted the receipts. Made three calls:
+
+- **Region:** stay us-east-1. The eu-west-1 suggestion was about latency convenience, not correctness.
+- **CloudWatch:** Option 2 — keep pilot as Python timing, switch to CloudWatch for the full experiment, document the methodology shift.
+- **70B:** authorised escalation. Run same 80-run pilot matrix on 70B for a clean before/after.
+
+Also asked two important sanity-check questions about the post-fix pilot results: was the rerun on the same 20-task stratified sample (yes, deterministic from seed=42), and at n=20 isn't the 5pp reactive drop within sample noise (yes, exactly — one task flipping = 5pp). That's the right read. The 10pp planning improvement is more suggestive but still marginal. Need to be careful in the writeup not to over-interpret either.
+
+Also asked to track per-call latency separately from total wall-clock and to project the timeline impact of 70B escalation on the full 1,200-run experiment.
+
+### 70B pilot
+
+Code changes were minimal because the LLM client architecture was already set up to swap model IDs via the `model_id` parameter. Added a `--70b` CLI flag to `scripts/run_pilot.py` that switches to `us.meta.llama3-1-70b-instruct-v1:0`. Also added a `latency_per_call_mean` column to the results aggregator (= wall-clock / llm_calls per run).
+
+Renamed the 8B post-fix artefacts to `*_8b_postfix` so the 70B run wouldn't overwrite them. Now have three preserved pilot runs in the repo: baseline (8B pre-fix), 8B post-fix, and 70B post-fix.
+
+Ran the 70B pilot: 80 runs, ~30 minutes wall-clock, cost ~$2.50 (vs $0.24 for 8B — ~10x per-token cost).
+
+### Results — three-way comparison
+
+**Hard Success at noise=0:**
+
+| | 8B baseline | 8B post-fix | 70B post-fix |
+|---|---|---|---|
+| Reactive | 15% | 10% | **65%** |
+| Planning | 15% | 25% | **35%** |
+
+**Hard Success at noise=0.2:**
+
+| | 8B baseline | 8B post-fix | 70B post-fix |
+|---|---|---|---|
+| Reactive | 25% | 10% | **80%** |
+| Planning | 0% | 0% | **25%** |
+
+The floor effect lifted exactly as the criterion predicted. Both architectures cleared 25%+ at noise=0; reactive jumped to 65-80%. Capacity was the binding constraint at 8B, not implementation.
+
+**Efficiency at noise=0:** Planning still uses 74% fewer tokens (5,689 vs 21,931) and is 1.9× faster total wall-clock (18.3s vs 35.1s) than reactive. But latency-per-call shows planning is *slower per call* (6.12s vs 3.44s) because plans are longer outputs — planning wins on total only because it makes ~3× fewer calls.
+
+### The three directional hypotheses
+
+Looking at the 70B pilot vs the original predictions:
+
+| RQ | Prediction | 70B pilot |
+|---|---|---|
+| RQ1 (Hard Success) | Planning > Reactive | **Reactive >> Planning** (30-55pp gap) |
+| RQ2 (Tokens) | Reactive > Planning | **Planning >> Reactive** (74% fewer tokens) |
+| RQ3 (Robustness) | Planning > Reactive | **Reactive > Planning** (consistent at both scales) |
+
+All three predictions appear to be inverted. The effect sizes at 70B are well above n=20 sample noise (15pp would be ~3 task flips; 55pp would be ~11 task flips). The full experiment with 50 tasks × 3 seeds = 150 runs per cell will give the statistical power to confirm.
+
+This is the most scientifically interesting outcome possible — three falsified directional hypotheses, with effect sizes that look real. The thesis story now becomes: ReAct's "think before each action" beats plan-then-execute's "think once, execute many" on this kind of constrained shopping task, *and* reactive is more noise-robust because each step's reasoning includes the latest observation. Plan-then-execute's efficiency advantage is real but in this domain the success cost is steep.
+
+### Timeline projection for the full experiment
+
+Sent these to supervisor as part of the 70B receipts:
+- 1,200 runs at ~26s/run = ~8.7 hr sequential, realistically 10-12 hr with throttling/CloudWatch propagation.
+- Cost: ~$30-45 on 70B (vs ~$3-4 on 8B).
+- Both well within budget; 70B doubles wall-clock but is the right call given the floor effect.
+
+### Things to investigate before the full experiment
+
+- **`malformed_limit` (7.5% of planning runs)** is a new failure mode that didn't appear at 8B. 70B emitting persistent malformed JSON for some plan attempts. Need to look at one of those traces and tighten the planning prompt if there's a fixable pattern.
+- **Per-call latency for planning (6.12s) vs reactive (3.44s)** at 70B. Planning's longer outputs incur more per-call time. Worth noting in the methodology but doesn't change anything mechanically.
+- **The full experiment should run on 70B with post-fix prompts**, same architecture configs as the pilots. No more pilot tweaking.
+
+Committed: `679649e` (70B pilot results) + `73baf77` (renames + flag + per-call latency) + `a34d27a` (infrastructure scripts).
+
+*Next: Capstone semester — full 1,200-run experiment on 70B with post-fix prompts.*
