@@ -56,6 +56,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--70b", dest="use_70b", action="store_true",
                         help="Use Llama 3.1 70B instead of the default 8B")
+    parser.add_argument("--arch", choices=["reactive", "planning", "both"],
+                        default="both",
+                        help="Which architecture(s) to run (default: both)")
     args = parser.parse_args()
     model_id = LLAMA_70B_MODEL_ID if args.use_70b else DEFAULT_MODEL_ID
     log.info("Using model: %s", model_id)
@@ -83,9 +86,12 @@ def main() -> int:
 
     llm = BedrockClient(model_id=model_id)
 
+    architectures_to_run = [args.arch] if args.arch != "both" else ARCHITECTURES
+    log.info("Running architectures: %s", architectures_to_run)
+
     metrics = run_pilot(
         tasks=tasks,
-        architectures=ARCHITECTURES,
+        architectures=architectures_to_run,
         noise_levels=NOISE_LEVELS,
         seeds=SEEDS,
         catalogue=catalogue,

@@ -25,11 +25,53 @@ class SearchArgs(BaseModel):
 class FilterArgs(BaseModel):
     attribute: Literal["price", "stars", "reviews", "bucket", "brand"]
     operator: FilterOperator
-    value: Any  # number for price/stars/reviews; string for bucket/brand
+    value: Any
     candidate_asins: list[str] | None = Field(
         default=None,
         description="Optional subset of ASINs to filter; if None, filters whole catalogue",
     )
+
+    @field_validator("candidate_asins", mode="before")
+    @classmethod
+    def _coerce_candidate_asins(cls, v):
+        """Permissive coercion of common LLM output variants for candidate_asins.
+
+        LLMs (especially in plan-then-execute settings where ASINs aren't known
+        upfront) sometimes emit placeholder values instead of an actual list.
+        We coerce these to None (which falls back to whole-catalogue filter),
+        documenting the limitation rather than rejecting the action.
+
+        Coerced variants:
+          - None or empty                          → None
+          - The string "null"                      → None
+          - The string "previous_result"           → None
+          - A list (the correct case)              → unchanged
+          - A stringified list "['B001', 'B002']"  → parsed list[str]
+        """
+        # Pass-through for the well-formed cases
+        if v is None or v == [] or v == "":
+            return None
+        if isinstance(v, list):
+            return v
+
+        # Coerce common LLM placeholder strings
+        if isinstance(v, str):
+            stripped = v.strip()
+            if stripped.lower() in ("null", "none", "previous_result", "<previous_result>"):
+                return None
+
+            # Try to parse a stringified list (single or double quotes both common)
+            if stripped.startswith("[") and stripped.endswith("]"):
+                import ast
+                try:
+                    parsed = ast.literal_eval(stripped)
+                    if isinstance(parsed, list):
+                        return [str(item) for item in parsed]
+                except (ValueError, SyntaxError):
+                    pass
+
+        # Anything else falls through to strict validation (which will reject it)
+        return v
 
 
 class CompareArgs(BaseModel):
