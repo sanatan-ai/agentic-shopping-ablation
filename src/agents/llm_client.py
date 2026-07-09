@@ -15,12 +15,26 @@ from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
 
+# AWS Bedrock pricing (us-east-1, as of late 2025)
+# Hardcoded to Llama 3.1 70B rates since the full experiment runs on 70B.
+# Used for cost tracking only; not authoritative.
+PRICE_PER_1K_INPUT_TOKENS = 0.00072   # USD (70B; 8B was 0.00022)
+PRICE_PER_1K_OUTPUT_TOKENS = 0.00072  # USD (70B; 8B was 0.00022)
 
-# AWS Bedrock pricing for Llama 3.1 8B Instruct (us-east-1, as of late 2025)
-# Used for cost tracking only; not authoritative
-PRICE_PER_1K_INPUT_TOKENS = 0.00022   # USD
-PRICE_PER_1K_OUTPUT_TOKENS = 0.00022  # USD
+class CostThresholdExceeded(Exception):
+    """Raised when cumulative Bedrock spend exceeds the configured threshold.
 
+    The runner catches this and shuts down gracefully, preserving partial results.
+    """
+
+    def __init__(self, cost_usd: float, threshold_usd: float, calls: int):
+        self.cost_usd = cost_usd
+        self.threshold_usd = threshold_usd
+        self.calls = calls
+        super().__init__(
+            f"Cost threshold exceeded: ${cost_usd:.4f} > ${threshold_usd:.4f} "
+            f"after {calls} calls. Aborting to prevent overrun."
+        )
 
 @dataclass
 class LLMResponse:
@@ -77,6 +91,7 @@ BEDROCK_MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
 
 
 @dataclass
+@dataclass
 class BedrockClient:
     """Real Bedrock client. Lazily creates the boto3 client on first use."""
 
@@ -86,6 +101,11 @@ class BedrockClient:
     total_calls: int = 0
     total_input_tokens: int = 0
     total_output_tokens: int = 0
+
+    # Safety mechanisms for the full experiment
+    cost_threshold_usd: float | None = None   # None = no cap
+    max_retries: int = 5                       # attempts on transient errors
+    base_backoff_seconds: float = 1.0          # exponential backoff base
 
     _client: Any = field(default=None, init=False, repr=False)
 
@@ -104,6 +124,7 @@ class BedrockClient:
         max_tokens: int = 256,
         temperature: float = 0.0,
     ) -> LLMResponse:
+        import time as _time
         client = self._ensure_client()
 
         # Bedrock Converse expects messages with 'content' as a list of blocks
@@ -112,15 +133,44 @@ class BedrockClient:
             for m in messages
         ]
 
-        response = client.converse(
-            modelId=self.model_id,
-            system=[{"text": system}],
-            messages=converse_messages,
-            inferenceConfig={
-                "maxTokens": max_tokens,
-                "temperature": temperature,
-            },
-        )
+        # Retry loop for transient throttling
+        last_exception = None
+        response = None
+        for attempt in range(self.max_retries):
+            try:
+                response = client.converse(
+                    modelId=self.model_id,
+                    system=[{"text": system}],
+                    messages=converse_messages,
+                    inferenceConfig={
+                        "maxTokens": max_tokens,
+                        "temperature": temperature,
+                    },
+                )
+                break  # success
+            except Exception as exc:
+                # Retry only on throttling / transient errors; surface others immediately
+                err_name = type(exc).__name__
+                if err_name in (
+                    "ThrottlingException",
+                    "ModelStreamErrorException",
+                    "ServiceUnavailableException",
+                    "ModelTimeoutException",
+                ):
+                    last_exception = exc
+                    backoff = self.base_backoff_seconds * (2 ** attempt)
+                    logger.warning(
+                        "Bedrock %s on attempt %d/%d; backing off %.1fs",
+                        err_name, attempt + 1, self.max_retries, backoff
+                    )
+                    _time.sleep(backoff)
+                    continue
+                raise
+
+        if response is None:
+            raise RuntimeError(
+                f"Bedrock retries exhausted after {self.max_retries} attempts"
+            ) from last_exception
 
         text = response["output"]["message"]["content"][0]["text"]
         usage = response["usage"]
@@ -129,6 +179,19 @@ class BedrockClient:
         self.total_calls += 1
         self.total_input_tokens += usage["inputTokens"]
         self.total_output_tokens += usage["outputTokens"]
+
+        # Cost-threshold check after every call
+        if self.cost_threshold_usd is not None:
+            cumulative_cost = (
+                (self.total_input_tokens / 1000.0) * PRICE_PER_1K_INPUT_TOKENS
+                + (self.total_output_tokens / 1000.0) * PRICE_PER_1K_OUTPUT_TOKENS
+            )
+            if cumulative_cost > self.cost_threshold_usd:
+                raise CostThresholdExceeded(
+                    cost_usd=cumulative_cost,
+                    threshold_usd=self.cost_threshold_usd,
+                    calls=self.total_calls,
+                )
 
         return LLMResponse(
             text=text,
