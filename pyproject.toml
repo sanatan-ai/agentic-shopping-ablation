@@ -18,6 +18,7 @@ dependencies = [
     "pyyaml>=6.0",
     "tqdm>=4.66",
     "boto3>=1.43.29",
+    "scipy>=1.17.1",
 ]
 
 [dependency-groups]
