@@ -378,6 +378,11 @@ This is a running list — added after I noticed the journal entries were where 
 | 31 | Region locked at us-east-1 (supervisor confirmed). eu-west-1 was a latency-convenience suggestion, not correctness. Document the deviation as a methodology note. | S14 |
 | 32 | Full Capstone experiment runs on Llama 3.1 70B (`us.meta.llama3-1-70b-instruct-v1:0`). Floor-effect criterion met after post-fix pilot showed 8B below 30% Hard Success. Supervisor authorised. | S14 |
 | 33 | CloudWatch latency = primary source for full experiment. Python local timing = sanity cross-check. Methodology footnote will note the difference between pilot (Python) and main experiment (CloudWatch). | S14 |
+| 34 | Permissive coercion in FilterArgs.candidate_asins: string "null"/"previous_result" → None; stringified lists → parsed. Tool semantics unchanged; parser tolerance only. | S17 |
+| 35 | Full experiment safety mechanisms locked: checkpoint/resume, retry-with-backoff (5 attempts, exp base=1s), cost-abort threshold $50 USD. | S18 |
+| 36 | Full experiment seeds locked: {42, 1, 2024}. Varied, memorable, three genuinely different values. | S18 |
+| 37 | Cliff's δ methodology footnote: on binary paired outcomes, δ reduces to paired proportion difference; magnitude labels understate practical importance. | S20 |
+| 38 | Thesis Discussion chapter to be structured around RQ3 (noise-conditional divergence) as the headline. RQ1 and RQ2 presented in service of that story. | S20 |
 
 
 ---
@@ -402,6 +407,11 @@ This is a running list — added after I noticed the journal entries were where 
 - **(after S14)** Always check for pre-existing supervisor instructions before scoping infrastructure work. The AWS checklist had been sent before Session 10 and I missed it because I was focused on the plan I was building with the AI collaborator. Four items needed retrofitting. Cost a day. Lesson: at every new phase of work, ask "did the supervisor send any instructions about this?" before designing from scratch.
 - **(after S14)** When you've missed something, the only winning move is to be transparent fast. Acknowledged the gaps, took ownership, asked his guidance on the open question (region), started the cheap items in parallel. Result: he made clean calls, accepted the receipts, authorised the 70B escalation. Trying to hide the gaps or rationalise them would have damaged trust. Direct ownership repaired it.
 - **(after S14)** Trust your pre-experimental decisions even when results invert your hypotheses. All three RQ directional predictions appear to be falsified in the pilot. The first instinct is to question the methodology — "did we make a mistake somewhere?" Often the discipline of the locked decisions (action format, prompts, seeds, valid-set bounds) is exactly what gives the result credibility. RQ inversions are the most scientifically interesting outcome possible. Don't second-guess them; report them honestly.
+- **(after S16)** Small-model prompt engineering interventions can create novel failure modes at higher model scales. The chaining instruction added in Session 13 to help both agents was quietly ignored by 8B and actively tried by 70B, exposing a new schema-validation gap that only manifested at the higher capability level. This is worth flagging in the thesis discussion: interventions calibrated for one model scale don't transfer for free to another.
+- **(after S17)** When a fix does more than it was designed to do, that's worth understanding, not just celebrating. The coercion fix targeted 3 malformed_limit failures but also unblocked ~10 previously stuck runs. Understanding *why* (coercion falls back to whole-catalogue, letting planning at least *complete* plans) revealed a deeper architectural constraint that supervisor flagged for the discussion.
+- **(after S18)** Build safety mechanisms before you need them. Checkpoint/resume, retry-with-backoff, and cost-abort each felt like paranoia when I built them. All three got exercised. The accidental laptop shutdown in Session 19 would have wiped 917 runs without the checkpoint; the throttling retries silently saved individual runs during the full experiment; the cost cap didn't trigger but was the right thing to have.
+- **(after S19)** End-to-end verification of a safety mechanism sometimes writes itself. The accidental shutdown at 917/1200 runs was an unplanned test of the checkpoint/resume system. It worked exactly as designed and became a concrete methodology-chapter data point.
+- **(after S20)** Recognise the boundary between AI-assisted tooling and AI-performed analysis. Building code with an AI collaborator, drafting text for review, exploring design choices — all appropriate. Asking the collaborator to perform the qualitative coding I promised the supervisor I would do — not appropriate. The collaborator refused correctly. The temptation to offload came from real fatigue, but the check needed to be my judgement, not its. Recording this because the pattern will recur across the thesis-writing phase and the answer needs to be the same each time.
 
 ---
 
@@ -860,4 +870,246 @@ Sent these to supervisor as part of the 70B receipts:
 
 Committed: `679649e` (70B pilot results) + `73baf77` (renames + flag + per-call latency) + `a34d27a` (infrastructure scripts).
 
-*Next: Capstone semester — full 1,200-run experiment on 70B with post-fix prompts.*
+---
+
+## Session 15
+
+Supervisor exchange revealed I'd missed his original AWS setup checklist. Long session — closed the gaps, ran a big 70B pilot, and found something important via trace inspection. Trying to write it in order.
+
+The supervisor sent a follow-up question asking about the determinism test and CloudWatch latency capture. Both items I hadn't done. Went back through past messages and found he'd sent a 7-item AWS setup checklist before Session 10 that I'd never actioned. Four items unmet — eu-west-1 region (I used us-east-1), 70B model access, S3 bucket, determinism test, CloudWatch latency. Sent an honest acknowledgement, took ownership, asked him to make the call on the region rather than unilaterally switching.
+
+Ran the closure work in parallel while waiting for his region call.
+
+**Determinism test.** Wrote `scripts/bedrock_determinism_test.py`. Two consecutive Bedrock Converse calls at temperature=0.0 with a non-trivial prompt ("List the first 5 prime numbers as a comma-separated list. Reply with the list and nothing else."). Both returned byte-identical: `'\n\n2, 3, 5, 7, 11'`. Identical token counts. AWS doesn't formally guarantee determinism at temp=0, so this is empirical evidence not proof. Mentioning it explicitly in the methodology as a limitation.
+
+**CloudWatch latency.** Wrote `scripts/bedrock_cloudwatch_latency.py`. Queries `AWS/Bedrock` `InvocationLatency` metric — AWS auto-captures this on every Bedrock call. First run got AccessDenied because `bedrock-research-user` only had `AmazonBedrockFullAccess`. Added `CloudWatchReadOnlyAccess` policy. Re-ran, got mean 287.5ms across the two determinism-test calls.
+
+Decision (finalised after supervisor's response): keep the existing pilot reports as Python local timing, switch to CloudWatch as primary source for the full experiment, with Python as sanity cross-check. Methodology footnote will explain the shift as a deliberate design choice, not a flaw.
+
+**S3 bucket.** Created `bedrock-research-sanatan-25103130` in us-east-1. Added `AmazonS3FullAccess`. Verified with `aws s3 ls`.
+
+**70B access.** Tested directly with a small Converse call. Returned `'\n\nOK.'` first try. AWS auto-enables 70B same as 8B; no manual request needed.
+
+Sent full receipts package. Supervisor made three calls:
+- Region: **stay us-east-1** (his eu-west-1 suggestion was about latency convenience, not correctness)
+- CloudWatch: **Option 2** — pilot stays as Python timing, full experiment uses CloudWatch as primary with Python as sanity check
+- **70B escalation authorised** — post-fix pilot showed both architectures under 30% Hard Success, satisfying the floor-effect criterion
+
+He also asked two sanity-check questions I need to note here for the record: was the post-fix rerun on the same 20-task stratified sample (yes, deterministic from seed=42), and isn't the 5pp reactive drop within noise at n=20 (yes, exactly — one task flip = 5pp). His caution was correct. I noted it and won't over-interpret either the reactive drop or planning's 10pp improvement at that sample size.
+
+Committed: `a34d27a` (infrastructure scripts).
+
+---
+
+## Session 16
+
+70B pilot. Code changes were minimal because the LLM client was already set up to swap model IDs via `model_id`. Added a `--70b` CLI flag to `run_pilot.py` and a `latency_per_call_mean` column to the results aggregator (= wall-clock / llm_calls per run).
+
+Renamed the 8B post-fix artefacts to `*_8b_postfix` so the 70B run wouldn't overwrite them. Now three preserved pilots in the repo: baseline (8B pre-fix), 8B post-fix, and 70B post-fix.
+
+Ran the 70B pilot: 80 runs, ~30 minutes wall-clock, cost ~$2.50 (vs $0.24 for 8B — roughly 10× per-token cost).
+
+### The three-way comparison
+
+**Hard Success at noise=0:**
+
+| | 8B baseline | 8B post-fix | 70B post-fix |
+|---|---|---|---|
+| Reactive | 15% | 10% | **65%** |
+| Planning | 15% | 25% | **35%** |
+
+**Hard Success at noise=0.2:**
+
+| | 8B baseline | 8B post-fix | 70B post-fix |
+|---|---|---|---|
+| Reactive | 25% | 10% | **80%** |
+| Planning | 0% | 0% | **25%** |
+
+Floor effect lifted as the criterion predicted. Both architectures cleared 25%+ at noise=0. Reactive jumped to 65-80%. **Capacity was the binding constraint at 8B, not implementation.**
+
+**Efficiency at noise=0:** Planning still uses 74% fewer tokens (5,689 vs 21,931) and is 1.9× faster total wall-clock. Latency-per-call shows planning is *slower per call* (6.12s vs 3.44s) because plans are longer outputs — planning wins on total only because it makes ~3× fewer calls.
+
+Looking at the RQ predictions after this pilot:
+
+| RQ | Prediction | 70B pilot |
+|---|---|---|
+| RQ1 (Hard Success) | Planning > Reactive | Reactive >> Planning (30-55pp gap) |
+| RQ2 (Tokens) | Reactive > Planning | Planning >> Reactive (74% fewer tokens) |
+| RQ3 (Robustness) | Planning > Reactive | Reactive > Planning (consistent at both scales) |
+
+All three appear inverted. Effect sizes at 70B are well above n=20 sample noise. Full experiment with 150 runs per cell will settle it statistically.
+
+### The malformed_limit finding
+
+Post-fix pilot showed a new failure mode: 3 of 40 planning runs at 70B hit `malformed_limit`. Never happened at 8B. Supervisor asked to investigate the cause before the full experiment.
+
+Ran a diagnostic to find the three failed runs (T005, T032 twice). All planning + 70B, all `parse_errors=0` — meaning the JSON parsed fine but failed *schema validation* downstream. Opened one trace (`T010__planning__noise0.2__seed42.jsonl`).
+
+The failure was structural, not a bug in my code. The chaining instruction we added in Session 13 shows example syntax: `filter(candidate_asins=[<asins from step 1>])`. Reactive can fill in real ASINs at each step because it operates *after* each observation. Planning has to write the whole plan upfront, before it has any observations. So planning at 70B is smart enough to *try* to follow the chaining instruction — but has to invent placeholder values for `candidate_asins`. It tried `"previous_result"` (string), `"null"` (string), and stringified lists like `"['B001', 'B002']"`. The `FilterArgs` Pydantic schema rejects all three because it wants `list[str] | None`, not strings.
+
+Three consecutive schema rejections → `malformed_limit` termination.
+
+8B never hit this because 8B mostly ignored the chaining instruction. 70B reads it, tries to follow, and fails gracefully in a way our schema doesn't accommodate. This is a real architectural interaction, not a bug — and it demonstrates something the thesis should discuss: prompt-engineering interventions that work at one model scale can create novel failure modes at another.
+
+Wrote up the cause carefully and sent to supervisor before applying any fix. He approved the fix and added an insight: when `candidate_asins` gets coerced to `None`, the filter runs on the whole catalogue rather than a narrowed list. Which means **planning is structurally unable to do progressive narrowing mid-plan** — it plans before it has any results to work with. That's a thesis-discussion goldmine that mechanically explains why planning underperforms on Hard Success and robustness. Not just a parser fix — a real architectural constraint being surfaced.
+
+Committed: `679649e` (70B pilot results).
+
+---
+
+## Session 17
+
+Applied the coercion fix. In `src/environment/models.py`, added a Pydantic `field_validator` to `FilterArgs.candidate_asins` (mode='before') that coerces:
+- `"null"` → None
+- `"previous_result"` → None
+- `"['B001', 'B002']"` → parsed `['B001', 'B002']`
+- Well-formed values pass through unchanged
+
+Tool semantics don't change. The parser just tolerates common LLM output variants instead of rejecting on technicality. Same fix applies to both architectures for fairness.
+
+Tested with a small in-script sanity check across 5 cases — all pass, all correctly coerced.
+
+Ran the 40-run planning-only rerun (`--arch planning --70b`). Cost ~$1.20, ~16 minutes.
+
+**Primary check:** `malformed_limit` failures went from 3/40 to **0/40**. Fix confirmed.
+
+**Unexpected secondary finding:** Planning's Hard Success at noise=0 rose from 35% → 65%. That's much bigger than the ~7.5pp we'd expect from just resolving the malformed runs. Coercion is *also* unblocking runs previously stuck mid-plan on schema rejections — those runs now progress and sometimes succeed. Planning at noise=0.2 stayed at 20% (was 25%) — the coercion didn't rescue planning's noise robustness.
+
+Revised three-way picture:
+- Planning matches Reactive on Hard Success at noise=0 (both 65%). RQ1 inversion is **noise-conditional**, not absolute.
+- Reactive still wins clearly on robustness: 80% vs 20% at noise=0.2.
+- Planning still wins on efficiency (~7k vs ~22k tokens).
+
+Committed: `4a2d486` (coercion fix) + `8ba256a` (planning-only rerun results).
+
+---
+
+## Session 18
+
+Full-experiment infrastructure. Everything up to this point was pilot-scale — 80 runs, cheap-and-cheerful, easy to rerun if something broke. The full experiment is 1,200 runs at ~$30-45 cost and 10-12 hours wall-clock. Different threat model. Failure modes that were tolerable at pilot scale become expensive:
+- Mid-run crash: 800 runs wasted unless we're checkpointing properly
+- Bedrock throttling: 1,200 back-to-back calls might hit rate limits
+- Cost overrun: a bug could balloon the projected $30-45
+- Wall-clock over overnight window: sleep/network/VS-Code crashes all real risks
+
+Built four safety mechanisms.
+
+**Checkpoint/resume.** Extended the runner. On startup, checks if the results file exists and loads already-completed run keys (indexed by `(task_id, architecture, noise_level, seed)`). Iterates the matrix but skips keys that are already done. New file `src/experiments/full_runner.py`.
+
+Unit-tested with 5 scenarios (nonexistent file, existing valid file, corrupted file, resume logic, iteration skip). 5/5 passed.
+
+**Retry-with-backoff.** Modified `BedrockClient.complete()` to catch `ThrottlingException`, `ModelStreamErrorException`, `ServiceUnavailableException`, `ModelTimeoutException`. Exponential backoff: 1s, 2s, 4s, 8s, 16s across 5 attempts. Other exceptions surface immediately (we don't want to hide real errors).
+
+**Cost abort threshold.** Added `CostThresholdExceeded` exception + `cost_threshold_usd` field to `BedrockClient`. Cumulative cost is computed after every call. Threshold set to $50 (well above projected $30-45). Runner catches the exception and shuts down gracefully with all results preserved.
+
+**Post-experiment CloudWatch analysis.** Wrote `scripts/query_experiment_latency.py` — pulls Bedrock `InvocationLatency` metric across the experiment's time window and writes a CSV. Runs once after the experiment completes.
+
+Also created `scripts/run_full_experiment.py` — separate entry point from the pilot script, so both remain available for future ablations. Locked matrix: 50 tasks × 2 architectures × 4 noise levels × 3 seeds = 1,200 runs. Seeds: `[42, 1, 2024]` (varied, memorable, three genuinely different values).
+
+Updated 70B pricing constants: `PRICE_PER_1K_INPUT_TOKENS = 0.00072` (was 0.00022 for 8B).
+
+Dry-run confirmed matrix dimensions. Committed: `76ee7c6`.
+
+---
+
+## Session 19
+
+Full experiment run. Kicked off `uv run python scripts/run_full_experiment.py`, verified the "Starting fresh: 1200 runs" line, walked away.
+
+Something happened partway through: I accidentally pressed the laptop's power button. Cancelled the shutdown dialog but the PowerShell window closed. Panic moment. Ran the check script: **917 runs preserved, 917 trace files on disk**, the results file intact. Checkpoint/resume worked exactly as designed. Restarted the same command, saw "Resuming from checkpoint: 917/1200 runs already completed," and it picked up from run 918. About 2.5 hours later it finished.
+
+This is exactly the kind of end-to-end verification of the safety design that couldn't have been contrived — it just happened. Supervisor noted it belongs in the Reproducibility section of the Methodology chapter. Agreed.
+
+### Full experiment results (1,200 runs, n=150 per cell)
+
+**Hard Success:**
+
+| Noise | Reactive | Planning | Δ |
+|---|---|---|---|
+| 0.0 | 62.0% | 58.0% | +4pp |
+| 0.1 | 60.7% | 40.7% | +20pp |
+| 0.2 | 64.0% | 35.3% | +29pp |
+| 0.3 | 60.0% | 40.7% | +19pp |
+
+**Preference Success:** Reactive at 24-27% across all noise; Planning at 9-16%. Roughly 2-3× advantage for reactive.
+
+**Efficiency (noise=0):** Reactive 8.5 LLM calls, 19.3k tokens, 30.7s wall-clock. Planning 2.7 calls, 7.6k tokens, 17.9s. Planning uses 61% fewer tokens.
+
+**Robustness pattern:**
+- Reactive: essentially flat across noise (60-64% Hard Success)
+- Planning: sharp drop from 58% (clean) to 35-41% (noisy)
+
+**Failure modes (n=600 per architecture):**
+- Reactive: 61.7% success, 19.5% wrong_product, 11.8% budget_exhausted
+- Planning: 43.7% success, 24.2% replan_limit_exceeded, 21.7% wrong_product
+
+Planning's dominant non-success mode is exhausting its replan budget — mechanistically consistent with the "structurally unable to do progressive narrowing mid-plan" insight from Session 16.
+
+### CloudWatch latency
+
+Ran the batch query. 7,177 total Bedrock calls captured across the experiment window. Mean latency 4,131.9 ms server-side. Python-timing cross-check agreed within ~130ms (roughly RTT + response transfer overhead). Both sources consistent — CloudWatch validated as the primary source for the thesis.
+
+Sent supervisor the receipts. He confirmed the findings looked clean and asked about the failure-mode qualitative coding as the next step.
+
+Committed: `7cc3ba5` (full experiment results).
+
+---
+
+## Session 20
+
+Statistical analysis + qualitative coding setup + supervisor's substantive feedback.
+
+### Statistical analysis
+
+Built `src/experiments/stats_analysis.py`. For each (noise_level × success_metric) cell:
+- Paired Wilcoxon signed-rank test on task-seed-paired differences
+- Cliff's δ on paired data
+- 95% percentile-bootstrap CI (10,000 resamples, seed=42) for mean difference
+- Bonferroni correction across all 12 tests
+
+Ran on the full experiment results. **10 of 12 tests reach significance after Bonferroni. All 10 favour reactive.**
+
+The two non-significant tests are both at noise=0: Hard Success (Δ=+4pp, p=0.27) and Constraint Satisfaction (Δ=+3.3pp, p=0.27). Preference Success was significant even at noise=0 (Δ=+10pp).
+
+Observation to note for the thesis methodology: Cliff's δ on binary paired data reduces to the paired proportion difference. So for Hard Success and Preference Success, the magnitude labels ("small", "medium", "large" from Romano et al. 2006) understate practical importance because they were calibrated for continuous outcomes. The continuous Constraint Satisfaction metric was the only one where δ registered as "medium" (0.338 at noise=0.2). Footnote it in the methodology.
+
+Committed: `f267df0` (statistical analysis).
+
+### Qualitative coding — setup
+
+Designed the 10-category taxonomy in `docs/taxonomy_v1.md`. Categories cover the reasoning-level failure patterns I'd expect based on trace inspection so far — wrong_product_satisfying, search_blindness, failed_narrowing, non_commitment, plan_execution_mismatch, replan_treadmill, budget_exhaustion_mid_narrowing, malformed_action_recovery_failure, constraint_misinterpretation, other_uncoded.
+
+Built three scripts:
+- `sample_failed_traces.py` — stratified sample of 48 failed traces (12 per env-side failure_mode category), seeded at 42, locked in `data/qualitative_coding/sampled_traces.json`
+- `code_failed_traces.py` — interactive tool for Pass 1 and Pass 2, saves to CSV as-you-go, resumable
+- `compute_kappa.py` — Cohen's kappa computation with confusion matrix and disagreement report
+
+Ran the sampler. Got exactly 12 per category, 48 total, all trace files existing.
+
+Committed: `4280a7b` (qualitative coding tools + sample).
+
+### Pass 1 partial
+
+Started Pass 1 but only got through 24 of the 48 traces. Underestimated how time-consuming this is — each trace takes 3-5 minutes to read and categorise properly. Coded 24 in one session and stopped.
+
+Messaged supervisor asking whether he'd accept 24 as the final sample size (with a methodology note about limited saturation) rather than pushing through the remaining 24 for a shallower reading of each. He was reasonable about it; awaiting his exact call. Fallback plan if he wants the full 48: dictate the remaining traces (say the observations aloud, capture as notes) rather than sit-and-read at pace. Meaningfully faster.
+
+Something I want to be honest about here: I asked the AI collaborator to do the categorisation for me at one point. It refused — correctly. The kappa check measures *my* consistency, not the collaborator's; and submitting AI-generated qualitative analysis as my own would cross an academic integrity line that the code-and-scripting help doesn't. Recording it because it's the right kind of failure mode to notice: when the work becomes tedious, the temptation to offload is strong. The collaborator drew the line I should have drawn myself.
+
+### Supervisor's feedback on the statistical analysis
+
+Five points, all substantive, all going into the thesis structure:
+
+1. **Report all 12 tests, not just the 10 significant ones.** Full table with both nulls named explicitly. Selective reporting is a red flag even when unintentional.
+2. **Explain why no significance test for RQ2 (efficiency).** The token/wall-clock advantage was monotonic across all conditions, so a test adds no information. Say that explicitly rather than skip it silently. Report full descriptives (mean, median, SD).
+3. **Separate effect size magnitude from practical significance.** The Cliff's δ footnote is good but needs to be extended in prose: the 29pp Hard Success gap at noise=0.2 is large in any applied sense regardless of what δ labels call it.
+4. **Explain the noise=0 null result mechanistically.** Both architectures achieving equivalent Hard Success under clean conditions is a substantive finding, not a gap. The mechanistic answer likely lives in recovery-mechanism dormancy: under clean conditions there's nothing to trigger a replan, so planning's brittleness never manifests.
+5. **RQ3 is the headline. Structure the thesis around it.** The story isn't "reactive beats planning" — it's "reactive and planning are equivalent under clean conditions but diverge under noise, and the divergence direction inverts the ReWOO prediction." Robustness is the finding; success and efficiency are measurements of it.
+
+Point 5 in particular restructures the Discussion chapter. All five feed the writing phase.
+
+Pass 2 in ~10 days after temporal decay. Meanwhile, thesis writing per supervisor's structure suggestion.
+
+---
+
+*Next: thesis writing per supervisor's structural feedback. Pass 2 of qualitative coding in ~10 days after temporal decay.*
