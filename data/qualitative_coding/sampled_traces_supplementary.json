@@ -1,0 +1,91 @@
+{
+  "sampling_seed": 42,
+  "target_per_cell": 3,
+  "purpose": "Supplementary sample to reach 3-per-(arch,noise) stratification for Pass 1",
+  "sampled": [
+    {
+      "trace_path": "data\\traces_full\\T030__reactive__noise0.0__seed2024.jsonl",
+      "task_id": "T030",
+      "architecture": "reactive",
+      "noise_level": 0.0,
+      "seed": 2024,
+      "failure_mode": "wrong_product",
+      "purchased_asin": "B09XB831F7",
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    },
+    {
+      "trace_path": "data\\traces_full\\T007__reactive__noise0.0__seed2024.jsonl",
+      "task_id": "T007",
+      "architecture": "reactive",
+      "noise_level": 0.0,
+      "seed": 2024,
+      "failure_mode": "wrong_product",
+      "purchased_asin": "B07MZ99LZQ",
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    },
+    {
+      "trace_path": "data\\traces_full\\T002__reactive__noise0.2__seed42.jsonl",
+      "task_id": "T002",
+      "architecture": "reactive",
+      "noise_level": 0.2,
+      "seed": 42,
+      "failure_mode": "no_purchase:unknown",
+      "purchased_asin": null,
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    },
+    {
+      "trace_path": "data\\traces_full\\T047__reactive__noise0.2__seed1.jsonl",
+      "task_id": "T047",
+      "architecture": "reactive",
+      "noise_level": 0.2,
+      "seed": 1,
+      "failure_mode": "budget_exhausted",
+      "purchased_asin": null,
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    },
+    {
+      "trace_path": "data\\traces_full\\T014__reactive__noise0.3__seed42.jsonl",
+      "task_id": "T014",
+      "architecture": "reactive",
+      "noise_level": 0.3,
+      "seed": 42,
+      "failure_mode": "wrong_product",
+      "purchased_asin": "B09XB831F7",
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    },
+    {
+      "trace_path": "data\\traces_full\\T010__reactive__noise0.3__seed2024.jsonl",
+      "task_id": "T010",
+      "architecture": "reactive",
+      "noise_level": 0.3,
+      "seed": 2024,
+      "failure_mode": "budget_exhausted",
+      "purchased_asin": null,
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    },
+    {
+      "trace_path": "data\\traces_full\\T015__planning__noise0.0__seed42.jsonl",
+      "task_id": "T015",
+      "architecture": "planning",
+      "noise_level": 0.0,
+      "seed": 42,
+      "failure_mode": "wrong_product",
+      "purchased_asin": "B0153RDG8C",
+      "hard_success": false,
+      "preference_success": 0.0,
+      "trace_exists": true
+    }
+  ]
+}
